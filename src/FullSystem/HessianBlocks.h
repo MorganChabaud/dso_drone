@@ -140,6 +140,7 @@ struct FrameHessian
 	std::vector<PointHessian*> pointHessiansOut;		// contains all OUTLIER points (= discarded.).
 	std::vector<ImmaturePoint*> immaturePoints;		// contains all OUTLIER points (= discarded.).
 
+	std::vector<float> imgIDepthsAlt; // External from original DSO, used to specify some pixels true inverse depths
 
 	Mat66 nullspaces_pose;
 	Mat42 nullspaces_affine;
@@ -161,6 +162,7 @@ struct FrameHessian
     EIGEN_STRONG_INLINE const Vec10 &get_state_scaled() const {return state_scaled;}
     EIGEN_STRONG_INLINE const Vec10 get_state_minus_stateZero() const {return get_state() - get_state_zero();}
 
+	EIGEN_STRONG_INLINE float getImgIDepthAlt(int x, int y){ return imgIDepthsAlt[y * wG[0] + x]; }
 
 	// precalc values
 	SE3 PRE_worldToCam;
@@ -173,8 +175,9 @@ struct FrameHessian
     inline AffLight aff_g2l() const {return AffLight(get_state_scaled()[6], get_state_scaled()[7]);}
     inline AffLight aff_g2l_0() const {return AffLight(get_state_zero()[6]*SCALE_A, get_state_zero()[7]*SCALE_B);}
 
+	inline void setImgIDepthsAlt(std::vector<float> & imgIDepths){ imgIDepthsAlt = imgIDepths; }
 
-
+	
 	void setStateZero(const Vec10 &state_zero);
 	inline void setState(const Vec10 &state)
 	{

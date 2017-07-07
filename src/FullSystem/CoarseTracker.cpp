@@ -76,14 +76,14 @@ CoarseTracker::CoarseTracker(int ww, int hh) : lastRef_aff_g2l(0,0)
 	}
 
 	// warped buffers
-    buf_warped_idepth = allocAligned<4,float>(ww*hh, ptrToDelete);
-    buf_warped_u = allocAligned<4,float>(ww*hh, ptrToDelete);
-    buf_warped_v = allocAligned<4,float>(ww*hh, ptrToDelete);
-    buf_warped_dx = allocAligned<4,float>(ww*hh, ptrToDelete);
-    buf_warped_dy = allocAligned<4,float>(ww*hh, ptrToDelete);
-    buf_warped_residual = allocAligned<4,float>(ww*hh, ptrToDelete);
-    buf_warped_weight = allocAligned<4,float>(ww*hh, ptrToDelete);
-    buf_warped_refColor = allocAligned<4,float>(ww*hh, ptrToDelete);
+    	buf_warped_idepth = allocAligned<4,float>(ww*hh, ptrToDelete);
+    	buf_warped_u = allocAligned<4,float>(ww*hh, ptrToDelete);
+    	buf_warped_v = allocAligned<4,float>(ww*hh, ptrToDelete);
+    	buf_warped_dx = allocAligned<4,float>(ww*hh, ptrToDelete);
+    	buf_warped_dy = allocAligned<4,float>(ww*hh, ptrToDelete);
+    	buf_warped_residual = allocAligned<4,float>(ww*hh, ptrToDelete);
+    	buf_warped_weight = allocAligned<4,float>(ww*hh, ptrToDelete);
+    	buf_warped_refColor = allocAligned<4,float>(ww*hh, ptrToDelete);
 
 
 	newFrame = 0;
@@ -92,6 +92,7 @@ CoarseTracker::CoarseTracker(int ww, int hh) : lastRef_aff_g2l(0,0)
 	w[0]=h[0]=0;
 	refFrameID=-1;
 }
+
 CoarseTracker::~CoarseTracker()
 {
     for(float* ptr : ptrToDelete)
@@ -148,7 +149,11 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				assert(r->efResidual->isActive() && r->target == lastRef);
 				int u = r->centerProjectedTo[0] + 0.5f;
 				int v = r->centerProjectedTo[1] + 0.5f;
-				float new_idepth = r->centerProjectedTo[2];
+				//float new_idepth = r->centerProjectedTo[2];
+				float new_idepth = (u > 0 && v > 0 && u < wG[0] && v < hG[0]) ? fh->getImgIDepthAlt((u-1), (v-1)) : -1;
+				
+				if(new_idepth == -1) std::cout << "Warning: idepth outside image set to -1" << std::endl;
+
 				float weight = sqrtf(1e-3 / (ph->efPoint->HdiF+1e-12));
 
 				idepth[0][u+w[0]*v] += new_idepth *weight;

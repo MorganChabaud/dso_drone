@@ -26,6 +26,7 @@
 #define MAX_ACTIVE_FRAMES 100
 
 #include <deque>
+#include <vector>
 #include "util/NumType.h"
 #include "util/globalCalib.h"
 #include "vector"
@@ -47,6 +48,7 @@ namespace dso
 namespace IOWrap
 {
 class Output3DWrapper;
+class InputDepthWrapper;
 }
 
 class PixelSelector;
@@ -60,6 +62,7 @@ class ImageAndExposure;
 class CoarseDistanceMap;
 
 class EnergyFunctional;
+
 
 template<typename T> inline void deleteOut(std::vector<T*> &v, const int i)
 {
@@ -136,7 +139,7 @@ public:
 	virtual ~FullSystem();
 
 	// adds a new frame, and creates point & residual structs.
-	void addActiveFrame(ImageAndExposure* image, int id);
+	void addActiveFrame(ImageAndExposure* image, std::vector<float> & inputDepths, Eigen::Vector4f* attitudeQuat, int id);
 
 	// marginalizes a frame. drops / marginalizes points & residuals.
 	void marginalizeFrame(FrameHessian* frame);

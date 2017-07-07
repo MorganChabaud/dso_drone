@@ -51,15 +51,12 @@
 
 #include "IOWrapper/Pangolin/PangolinDSOViewer.h"
 #include "IOWrapper/OutputWrapper/SampleOutputWrapper.h"
-
+#include "IOWrapper/InputDepthWrapper.h"
 
 #include <raspicam/raspicam_cv.h>
 
 
-std::string vignette = "";
-std::string gammaCalib = "";
-std::string source = "";
-std::string calib = "";
+std::string vignette, gammaCalib, source, calib, extDepthFolder;
 double rescale = 1;
 bool reverse = false;
 bool disableROS = false;
@@ -373,6 +370,14 @@ void parseArgument(char* arg)
 		printf("USING ONLINE CAMERA!\n");
 		return;
 	}
+
+	if(1==sscanf(arg, "extDepth=%s", buf))
+	{
+		extDepthFolder = std::string(buf);
+		std::cout << "Using external depth from: " << extDepthFolder << std::endl;
+		return;
+	}
+
 	printf("could not parse argument \"%s\"!!!!\n", arg);
 }
 
@@ -388,7 +393,7 @@ int main( int argc, char** argv )
 	boost::thread exThread = boost::thread(exitThread);
 
 
-	ImageFolderReader* reader = new ImageFolderReader(source,calib, gammaCalib, vignette);
+	ImageFolderReader* reader = new ImageFolderReader(source, calib, gammaCalib, vignette);
 	reader->setGlobalCalibration();
 
 	
@@ -399,8 +404,8 @@ int main( int argc, char** argv )
 	if(onlineCam)
 	{
 		cam.set(CV_CAP_PROP_FORMAT, CV_8UC1);
-		cam.set(CV_CAP_PROP_FRAME_WIDTH, 640);
-		cam.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+		cam.set(CV_CAP_PROP_FRAME_WIDTH, 512);
+		cam.set(CV_CAP_PROP_FRAME_HEIGHT, 512);
 
 		if(!cam.open())
 		{
@@ -442,6 +447,8 @@ int main( int argc, char** argv )
 		lend = start;
 		linc = -1;
 	}
+
+	IOWrap::InputDepthWrapper inputDepthWrap(wG[0], hG[0], extDepthFolder);
 
 	FullSystem* fullSystem = new FullSystem();
 	fullSystem->setGammaFunction(reader->getPhotometricGamma());
@@ -535,6 +542,9 @@ int main( int argc, char** argv )
 	    else
                 img = reader->getImage(i);
 
+	    // Load external depth file into wrapper 
+	    inputDepthWrap.loadDepthFile(i);
+
             bool skipFrame=false;
             if(playbackSpeed!=0 && !onlineCam)
             {
@@ -552,7 +562,7 @@ int main( int argc, char** argv )
 
 
 	    clock_t startFrame = clock();
-            if(!skipFrame) fullSystem->addActiveFrame(img, i);
+            if(!skipFrame) fullSystem->addActiveFrame(img, inputDepthWrap.getDepths(), new Eigen::Vector4f(1.0, 0.0, 0.0, 0.0), i);
 	    clock_t endFrame = clock();
 	    std::cout << "Time activating frame: " << (1000.0f * (endFrame - startFrame) / (float) (CLOCKS_PER_SEC)) << std::endl;
 
@@ -640,10 +650,10 @@ int main( int argc, char** argv )
     });
 
 
-    if(viewer != 0)
-        viewer->run();
+    	if(viewer != 0)
+        	viewer->run();
 
-    runthread.join();
+    	runthread.join();
 
 	for(IOWrap::Output3DWrapper* ow : fullSystem->outputWrapper)
 	{
