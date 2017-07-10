@@ -149,8 +149,11 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				assert(r->efResidual->isActive() && r->target == lastRef);
 				int u = r->centerProjectedTo[0] + 0.5f;
 				int v = r->centerProjectedTo[1] + 0.5f;
-				//float new_idepth = r->centerProjectedTo[2];
-				float new_idepth = (u > 0 && v > 0 && u < wG[0] && v < hG[0]) ? fh->getImgIDepthAlt((u-1), (v-1)) : -1;
+				float new_idepth;
+				if(extDepth)
+					new_idepth = (u > 0 && v > 0 && u < wG[0] && v < hG[0]) ? fh->getImgIDepthAlt((u-1), (v-1)) : -1;
+				else
+					new_idepth = r->centerProjectedTo[2];
 				
 				if(new_idepth == -1) std::cout << "Warning: idepth outside image set to -1" << std::endl;
 

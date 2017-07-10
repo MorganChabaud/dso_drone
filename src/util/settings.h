@@ -188,6 +188,7 @@ extern bool goStepByStep;
 extern bool plotStereoImages;
 extern bool multiThreading;
 extern bool onlineCam;
+extern bool extDepth;
 
 extern float freeDebugParam1;
 extern float freeDebugParam2;

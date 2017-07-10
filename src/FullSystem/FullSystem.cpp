@@ -824,7 +824,8 @@
     fh->makeImages(image->image, &Hcalib);
 
 	// ========================== Set known idepth (external source) ====================
-	fh->setImgIDepthsAlt(inputDepths);
+	if(extDepth)
+		fh->setImgIDepthsAlt(inputDepths);
 
 
 

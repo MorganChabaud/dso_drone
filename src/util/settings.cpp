@@ -192,7 +192,7 @@ bool disableAllDisplay = false;
 bool setting_onlyLogKFPoses = true;
 bool setting_logStuff = true;
 bool onlineCam = false;
-
+bool extDepth = false;
 
 bool goStepByStep = false;
 

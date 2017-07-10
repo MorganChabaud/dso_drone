@@ -15,7 +15,7 @@ InputDepthWrapper::InputDepthWrapper(int imgWidth, int imgHeight, std::string & 
 }
 	
 
-void InputDepthWrapper::loadDepthFile(int imgIdx)
+bool InputDepthWrapper::loadDepthFile(int imgIdx)
 {
 	const std::string depthFileName(depthFolderPath + depthBaseName + std::to_string(imgIdx) + depthExtension);
 
@@ -24,13 +24,14 @@ void InputDepthWrapper::loadDepthFile(int imgIdx)
 	if(!depthFile.is_open())
 	{
 		std::cout << "Error: Unable to open depth file " << depthFileName << std::endl;
-		return;
+		return false;
 	}
 
 	for (int i = 0; i < (imgWidth * imgHeight); ++i)
 		depthFile >> imgDepths[i];
 
 	depthFile.close();
+	return true;
 }
 
 }

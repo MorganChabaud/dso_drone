@@ -374,6 +374,7 @@ void parseArgument(char* arg)
 	if(1==sscanf(arg, "extDepth=%s", buf))
 	{
 		extDepthFolder = std::string(buf);
+		extDepth = true;
 		std::cout << "Using external depth from: " << extDepthFolder << std::endl;
 		return;
 	}
@@ -543,7 +544,9 @@ int main( int argc, char** argv )
                 img = reader->getImage(i);
 
 	    // Load external depth file into wrapper 
-	    inputDepthWrap.loadDepthFile(i);
+	    bool loadedDepthFile = false;
+	    if(extDepth)
+		loadedDepthFile = inputDepthWrap.loadDepthFile(i);
 
             bool skipFrame=false;
             if(playbackSpeed!=0 && !onlineCam)
@@ -561,10 +564,20 @@ int main( int argc, char** argv )
             }
 
 
-	    clock_t startFrame = clock();
-            if(!skipFrame) fullSystem->addActiveFrame(img, inputDepthWrap.getDepths(), new Eigen::Vector4f(1.0, 0.0, 0.0, 0.0), i);
-	    clock_t endFrame = clock();
-	    std::cout << "Time activating frame: " << (1000.0f * (endFrame - startFrame) / (float) (CLOCKS_PER_SEC)) << std::endl;
+	    // clock_t startFrame = clock();
+            if(!skipFrame)
+	    {
+		if(extDepth && loadedDepthFile)
+			fullSystem->addActiveFrame(img, inputDepthWrap.getDepths(), new Eigen::Vector4f(1.0, 0.0, 0.0, 0.0), i);
+	    	else
+		{
+			std::vector<float> emptyVec;
+			fullSystem->addActiveFrame(img, emptyVec, new Eigen::Vector4f(1.0, 0.0, 0.0, 0.0), i);
+	    	}
+	    }
+
+	    // clock_t endFrame = clock();
+	    // std::cout << "Time activating frame: " << (1000.0f * (endFrame - startFrame) / (float) (CLOCKS_PER_SEC)) << std::endl;
 
             delete img;
 

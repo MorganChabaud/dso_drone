@@ -23,7 +23,7 @@ class InputDepthWrapper
 public:
 	InputDepthWrapper(int imgWidth, int imgHeight, std::string & depthFolderPath);
 
-	void loadDepthFile(int imgIdx);	
+	bool loadDepthFile(int imgIdx);	
 
 	inline float getDepth(int x, int y){ return imgDepths[y * imgWidth + x]; }
 	inline std::vector<float> & getDepths(){ return imgDepths; };

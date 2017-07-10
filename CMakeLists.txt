@@ -6,8 +6,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.1.0)
 
 
 
-set(BUILD_TYPE Release)
-#set(BUILD_TYPE RelWithDebInfo)
+#set(BUILD_TYPE Release)
+set(BUILD_TYPE RelWithDebInfo)
 
 set(EXECUTABLE_OUTPUT_PATH bin)
 set(LIBRARY_OUTPUT_PATH lib)
@@ -26,7 +26,7 @@ find_package(OpenCV QUIET)
 
 # flags
 set(CMAKE_CXX_FLAGS
-   "-O3 -std=c++0x -g"
+   "-O3 -std=c++0x"
 )
 
 # ARM compilation with neon (for Raspberry Pi 3)
