@@ -142,6 +142,9 @@ struct FrameHessian
 
 	std::vector<float> imgIDepthsAlt; // External from original DSO, used to specify some pixels true inverse depths
 
+	Eigen::Vector4f inputDepthLimits; // In order: 0: minX | 1: maxX | 2: minY | 3: maxY
+
+
 	Mat66 nullspaces_pose;
 	Mat42 nullspaces_affine;
 	Vec6 nullspaces_scale;
@@ -155,15 +158,15 @@ struct FrameHessian
 	Vec10 step_backup;
 	Vec10 state_backup;
 
-
-    EIGEN_STRONG_INLINE const SE3 &get_worldToCam_evalPT() const {return worldToCam_evalPT;}
-    EIGEN_STRONG_INLINE const Vec10 &get_state_zero() const {return state_zero;}
-    EIGEN_STRONG_INLINE const Vec10 &get_state() const {return state;}
-    EIGEN_STRONG_INLINE const Vec10 &get_state_scaled() const {return state_scaled;}
-    EIGEN_STRONG_INLINE const Vec10 get_state_minus_stateZero() const {return get_state() - get_state_zero();}
+	EIGEN_STRONG_INLINE const SE3 &get_worldToCam_evalPT() const {return worldToCam_evalPT;}
+	EIGEN_STRONG_INLINE const Vec10 &get_state_zero() const {return state_zero;}
+	EIGEN_STRONG_INLINE const Vec10 &get_state() const {return state;}
+	EIGEN_STRONG_INLINE const Vec10 &get_state_scaled() const {return state_scaled;}
+	EIGEN_STRONG_INLINE const Vec10 get_state_minus_stateZero() const {return get_state() - get_state_zero();}
 
 	EIGEN_STRONG_INLINE float getImgIDepthAlt(int x, int y){ return imgIDepthsAlt[y * wG[0] + x]; }
-
+	EIGEN_STRONG_INLINE float getExtLim(int i){ return inputDepthLimits[i]; }	// i values: 0: minX | 1: maxX | 2: minY | 3: maxY
+	EIGEN_STRONG_INLINE std::vector<float>::size_type getImgIDepthAltSize(){ return imgIDepthsAlt.size(); }
 	// precalc values
 	SE3 PRE_worldToCam;
 	SE3 PRE_camToWorld;
@@ -171,12 +174,12 @@ struct FrameHessian
 	MinimalImageB3* debugImage;
 
 
-    inline Vec6 w2c_leftEps() const {return get_state_scaled().head<6>();}
-    inline AffLight aff_g2l() const {return AffLight(get_state_scaled()[6], get_state_scaled()[7]);}
-    inline AffLight aff_g2l_0() const {return AffLight(get_state_zero()[6]*SCALE_A, get_state_zero()[7]*SCALE_B);}
+	inline Vec6 w2c_leftEps() const {return get_state_scaled().head<6>();}
+	inline AffLight aff_g2l() const {return AffLight(get_state_scaled()[6], get_state_scaled()[7]);}
+	inline AffLight aff_g2l_0() const {return AffLight(get_state_zero()[6]*SCALE_A, get_state_zero()[7]*SCALE_B);}
 
-	inline void setImgIDepthsAlt(std::vector<float> & imgIDepths){ imgIDepthsAlt = imgIDepths; }
-
+	inline void setImgIDepthsAlt(const std::vector<float> & imgIDepths){ imgIDepthsAlt = imgIDepths; }
+	inline void setInputDepthLimits(const Eigen::Vector4f & inputDepthLimits){ this->inputDepthLimits = inputDepthLimits; }
 	
 	void setStateZero(const Vec10 &state_zero);
 	inline void setState(const Vec10 &state)

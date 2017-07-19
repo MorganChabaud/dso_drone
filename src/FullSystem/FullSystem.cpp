@@ -758,7 +758,7 @@
 								ngoodRes++;
 							}
 						}
-			    if(ph->idepth_hessian > setting_minIdepthH_marg)
+						if(ph->idepth_hessian > setting_minIdepthH_marg)
 						{
 							flag_inin++;
 							ph->efPoint->stateFlag = EFPointStatus::PS_MARGINALIZE;
@@ -800,10 +800,10 @@
 	}
 
 
-	void FullSystem::addActiveFrame( ImageAndExposure* image, std::vector<float> & inputDepths, Eigen::Vector4f* attitudeQuat, int id )
+	void FullSystem::addActiveFrame( ImageAndExposure* image, const std::vector<float> & inputDepths, const Eigen::Vector4f & inputDepthLimits, const Eigen::Vector4f & attitudeQuat, int id )
 {
 
-    if(isLost) return;
+	if(isLost) return;
 	boost::unique_lock<boost::mutex> lock(trackMutex);
 
 
@@ -812,21 +812,23 @@
 	FrameShell* shell = new FrameShell();
 	shell->camToWorld = SE3(); 		// no lock required, as fh is not used anywhere yet.
 	shell->aff_g2l = AffLight(0,0);
-    shell->marginalizedAt = shell->id = allFrameHistory.size();
-    shell->timestamp = image->timestamp;
-    shell->incoming_id = id;
+	shell->marginalizedAt = shell->id = allFrameHistory.size();
+	shell->timestamp = image->timestamp;
+	shell->incoming_id = id;
 	fh->shell = shell;
 	allFrameHistory.push_back(shell);
 
 
 	// =========================== make Images / derivatives etc. =========================
 	fh->ab_exposure = image->exposure_time;
-    fh->makeImages(image->image, &Hcalib);
+	fh->makeImages(image->image, &Hcalib);
 
 	// ========================== Set known idepth (external source) ====================
 	if(extDepth)
+	{
 		fh->setImgIDepthsAlt(inputDepths);
-
+		fh->setInputDepthLimits(inputDepthLimits);
+	}
 
 
 	if(!initialized)
@@ -864,11 +866,11 @@
 
 		Vec4 tres = trackNewCoarse(fh);
 		if(!std::isfinite((double)tres[0]) || !std::isfinite((double)tres[1]) || !std::isfinite((double)tres[2]) || !std::isfinite((double)tres[3]))
-        {
-            printf("Initial Tracking failed: LOST!\n");
+		{
+			printf("Initial Tracking failed: LOST!\n");
 			isLost=true;
-            return;
-        }
+			return;
+		}
 
 		bool needToMakeKF = false;
 		if(setting_keyframesPerSecond > 0)
@@ -891,14 +893,8 @@
 
 		}
 
-
-
-
-        for(IOWrap::Output3DWrapper* ow : outputWrapper)
-            ow->publishCamPose(fh->shell, &Hcalib);
-
-
-
+		for(IOWrap::Output3DWrapper* ow : outputWrapper)
+			ow->publishCamPose(fh->shell, &Hcalib);
 
 		lock.unlock();
 		deliverTrackedFrame(fh, needToMakeKF);

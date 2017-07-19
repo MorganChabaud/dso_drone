@@ -139,7 +139,7 @@ public:
 	virtual ~FullSystem();
 
 	// adds a new frame, and creates point & residual structs.
-	void addActiveFrame(ImageAndExposure* image, std::vector<float> & inputDepths, Eigen::Vector4f* attitudeQuat, int id);
+	void addActiveFrame(ImageAndExposure* image, const std::vector<float> & inputDepths, const Eigen::Vector4f & inputDepthLimits, const Eigen::Vector4f & attitudeQuat, int id);
 
 	// marginalizes a frame. drops / marginalizes points & residuals.
 	void marginalizeFrame(FrameHessian* frame);

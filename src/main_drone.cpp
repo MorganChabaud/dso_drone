@@ -67,6 +67,8 @@ float playbackSpeed=0;	// 0 for linearize (play as fast as possible, while seque
 bool preload=false;
 bool useSampleOutput=false;
 
+int extDepth_minX = -1, extDepth_maxX = -1,
+    extDepth_minY = -1, extDepth_maxY = -1;
 
 int mode=0;
 
@@ -371,11 +373,36 @@ void parseArgument(char* arg)
 		return;
 	}
 
+	// External depth options
 	if(1==sscanf(arg, "extDepth=%s", buf))
 	{
 		extDepthFolder = std::string(buf);
 		extDepth = true;
 		std::cout << "Using external depth from: " << extDepthFolder << std::endl;
+		return;
+	}
+
+	if(1==sscanf(arg, "minXDepth=%D", &extDepth_minX))
+	{
+		std::cout << "External depth min X: " << extDepth_minX << std::endl;
+		return;
+	}
+
+	if(1==sscanf(arg, "maxXDepth=%D", &extDepth_maxX))
+	{
+		std::cout << "External depth max X: " << extDepth_maxX << std::endl;
+		return;
+	}
+
+	if(1==sscanf(arg, "minYDepth=%D", &extDepth_minY))
+	{
+		std::cout << "External depth min Y: " << extDepth_minY << std::endl;
+		return;
+	}
+
+	if(1==sscanf(arg, "maxYDepth=%D", &extDepth_maxY))
+	{
+		std::cout << "External depth max Y: " << extDepth_maxY << std::endl;
 		return;
 	}
 
@@ -448,15 +475,15 @@ int main( int argc, char** argv )
 		lend = start;
 		linc = -1;
 	}
-
-	IOWrap::InputDepthWrapper inputDepthWrap(wG[0], hG[0], extDepthFolder);
+	
 
 	FullSystem* fullSystem = new FullSystem();
 	fullSystem->setGammaFunction(reader->getPhotometricGamma());
 	fullSystem->linearizeOperation = (playbackSpeed==0);
 
 
-
+	std::cout << "wg: " << wG[0] << " and hG: " << hG[0] << std::endl;
+	IOWrap::InputDepthWrapper inputDepthWrap(wG[0], hG[0], extDepthFolder);
 	
     	IOWrap::PangolinDSOViewer* viewer = 0;
 	if(!disableAllDisplay)
@@ -492,6 +519,14 @@ int main( int argc, char** argv )
         	}
 	}
 
+	Eigen::Vector4f extDepthLimits(-1, -1, -1, -1);
+	extDepth_minX = extDepth_minY = 1;
+	extDepth_maxX = wG[0];
+	extDepth_maxY = hG[0];
+
+	if(extDepth)
+		extDepthLimits = Eigen::Vector4f(extDepth_minX, extDepth_maxX,
+						extDepth_minY, extDepth_maxY);
 
         std::vector<ImageAndExposure*> preloadedImages;
         if(preload && !onlineCam)
@@ -546,7 +581,11 @@ int main( int argc, char** argv )
 	    // Load external depth file into wrapper 
 	    bool loadedDepthFile = false;
 	    if(extDepth)
+	    {
 		loadedDepthFile = inputDepthWrap.loadDepthFile(i);
+		if(!loadedDepthFile)
+			std::cout << "Error: inputDepth is empty." << std::endl;
+	    }
 
             bool skipFrame=false;
             if(playbackSpeed!=0 && !onlineCam)
@@ -563,16 +602,19 @@ int main( int argc, char** argv )
                 }
             }
 
-
+	    // IMU measurement
+	    Eigen::Vector4f attitudeReadings(1.0, 0.0, 0.0, 0.0);
+	    
+	    std::cout << "depths size: " << inputDepthWrap.getDepths().size() << std::endl;
 	    // clock_t startFrame = clock();
             if(!skipFrame)
 	    {
 		if(extDepth && loadedDepthFile)
-			fullSystem->addActiveFrame(img, inputDepthWrap.getDepths(), new Eigen::Vector4f(1.0, 0.0, 0.0, 0.0), i);
+			fullSystem->addActiveFrame(img, inputDepthWrap.getDepths(), extDepthLimits, attitudeReadings, i);
 	    	else
 		{
 			std::vector<float> emptyVec;
-			fullSystem->addActiveFrame(img, emptyVec, new Eigen::Vector4f(1.0, 0.0, 0.0, 0.0), i);
+			fullSystem->addActiveFrame(img, emptyVec, extDepthLimits, attitudeReadings, i);
 	    	}
 	    }
 

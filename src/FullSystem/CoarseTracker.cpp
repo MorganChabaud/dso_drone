@@ -138,9 +138,9 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 	// make coarse tracking templates for latstRef.
 	memset(idepth[0], 0, sizeof(float)*w[0]*h[0]);
 	memset(weightSums[0], 0, sizeof(float)*w[0]*h[0]);
-
 	for(FrameHessian* fh : frameHessians)
 	{
+		bool useExtIDepth = (extDepth && (fh->getImgIDepthAltSize() > 0)) ? true : false;
 		for(PointHessian* ph : fh->pointHessians)
 		{
 			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::IN)
@@ -150,11 +150,12 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				int u = r->centerProjectedTo[0] + 0.5f;
 				int v = r->centerProjectedTo[1] + 0.5f;
 				float new_idepth;
-				if(extDepth)
-					new_idepth = (u > 0 && v > 0 && u < wG[0] && v < hG[0]) ? fh->getImgIDepthAlt((u-1), (v-1)) : -1;
+
+				if(useExtIDepth)
+					new_idepth = (u > fh->getExtLim(0) && v > fh->getExtLim(2) && u < fh->getExtLim(1) && v < fh->getExtLim(3)) ? fh->getImgIDepthAlt((u-1), (v-1)) : r->centerProjectedTo[2];
 				else
 					new_idepth = r->centerProjectedTo[2];
-				
+				std::cout << "idep: " << new_idepth << " and proj: " << r->centerProjectedTo[2] << std::endl;
 				if(new_idepth == -1) std::cout << "Warning: idepth outside image set to -1" << std::endl;
 
 				float weight = sqrtf(1e-3 / (ph->efPoint->HdiF+1e-12));
@@ -456,10 +457,10 @@ Vec6 CoarseTracker::calcRes(int lvl, const SE3 &refToNew, AffLight aff_g2l, floa
 
 
 		float refColor = lpc_color[i];
-        Vec3f hitColor = getInterpolatedElement33(dINewl, Ku, Kv, wl);
-        if(!std::isfinite((float)hitColor[0])) continue;
-        float residual = hitColor[0] - (float)(affLL[0] * refColor + affLL[1]);
-        float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual);
+		Vec3f hitColor = getInterpolatedElement33(dINewl, Ku, Kv, wl);
+		if(!std::isfinite((float)hitColor[0])) continue;
+		float residual = hitColor[0] - (float)(affLL[0] * refColor + affLL[1]);
+		float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual);
 
 
 		if(fabs(residual) > cutoffTH)
@@ -735,12 +736,14 @@ void CoarseTracker::debugPlotIDepthMap(float* minID_pt, float* maxID_pt, std::ve
 	int lvl = 0;
 
 	{
+		std::cout << "deb" << std::endl;
 		std::vector<float> allID;
 		for(int i=0;i<h[lvl]*w[lvl];i++)
 		{
 			if(idepth[lvl][i] > 0)
 				allID.push_back(idepth[lvl][i]);
 		}
+		std::cout << "aft" << std::endl;
 		std::sort(allID.begin(), allID.end());
 		int n = allID.size()-1;
 
@@ -779,7 +782,7 @@ void CoarseTracker::debugPlotIDepthMap(float* minID_pt, float* maxID_pt, std::ve
 			}
 		}
 
-
+		std::cout << "mid" << std::endl;
 		MinimalImageB3 mf(w[lvl], h[lvl]);
 		mf.setBlack();
 		for(int i=0;i<h[lvl]*w[lvl];i++)
@@ -811,7 +814,7 @@ void CoarseTracker::debugPlotIDepthMap(float* minID_pt, float* maxID_pt, std::ve
 			}
         //IOWrap::displayImage("coarseDepth LVL0", &mf, false);
 
-
+	std::cout << "end" << std::endl;
         for(IOWrap::Output3DWrapper* ow : wraps)
             ow->pushDepthImage(&mf);
 
@@ -823,6 +826,7 @@ void CoarseTracker::debugPlotIDepthMap(float* minID_pt, float* maxID_pt, std::ve
 		}
 
 	}
+	std::cout << "_" << std::endl;
 }
 
 

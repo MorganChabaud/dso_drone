@@ -14,11 +14,11 @@ class InputDepthWrapper
 	const int imgWidth, imgHeight;
 	int imgIdx;
 	
-	std::vector<float> imgDepths;
 
 	std::ifstream depthFile;
 	const std::string depthFolderPath, depthBaseName, depthExtension;
 	
+	std::vector<float> imgDepths;
 
 public:
 	InputDepthWrapper(int imgWidth, int imgHeight, std::string & depthFolderPath);
