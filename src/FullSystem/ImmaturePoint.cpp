@@ -87,12 +87,6 @@ ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* frame,const Mat33f &hos
 				idepth_min, idepth_max,
 				hostToFrame_Kt[0],hostToFrame_Kt[1],hostToFrame_Kt[2]);
 
-//	const float stepsize = 1.0;				// stepsize for initial discrete search.
-//	const int GNIterations = 3;				// max # GN iterations
-//	const float GNThreshold = 0.1;				// GN stop after this stepsize.
-//	const float extraSlackOnTH = 1.2;			// for energy-based outlier check, be slightly more relaxed by this factor.
-//	const float slackInterval = 0.8;			// if pixel-interval is smaller than this, leave it be.
-//	const float minImprovementFactor = 2;		// if pixel-interval is smaller than this, leave it be.
 	// ============== project min and max. return if one of them is OOB ===================
 	Vec3f pr = hostToFrame_KRKi * Vec3f(u,v, 1);
 	Vec3f ptpMin = pr + hostToFrame_Kt*idepth_min;
