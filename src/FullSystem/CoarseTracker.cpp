@@ -140,7 +140,7 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 	memset(weightSums[0], 0, sizeof(float)*w[0]*h[0]);
 	for(FrameHessian* fh : frameHessians)
 	{
-		bool useExtIDepth = (extDepth && (fh->getImgIDepthAltSize() > 0)) ? true : false;
+		//bool useExtIDepth = (extDepth && (fh->getImgIDepthAltSize() > 0)) ? true : false;
 		for(PointHessian* ph : fh->pointHessians)
 		{
 			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::IN)
@@ -151,12 +151,12 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				int v = r->centerProjectedTo[1] + 0.5f;
 				float new_idepth;
 
-				if(useExtIDepth)
-					new_idepth = (u > fh->getExtLim(0) && v > fh->getExtLim(2) && u < fh->getExtLim(1) && v < fh->getExtLim(3)) ? fh->getImgIDepthAlt((u-1), (v-1)) : r->centerProjectedTo[2];
-				else
-					new_idepth = r->centerProjectedTo[2];
-				std::cout << "idep: " << new_idepth << " and proj: " << r->centerProjectedTo[2] << std::endl;
-				if(new_idepth == -1) std::cout << "Warning: idepth outside image set to -1" << std::endl;
+				//if(useExtIDepth)
+				//	new_idepth = (u > fh->getExtLim(0) && v > fh->getExtLim(2) && u < fh->getExtLim(1) && v < fh->getExtLim(3)) ? fh->getImgIDepthAlt((u-1), (v-1)) : r->centerProjectedTo[2];
+				//else
+				new_idepth = r->centerProjectedTo[2];
+				//std::cout << "idep: " << new_idepth << " and proj: " << r->centerProjectedTo[2] << std::endl;
+				//if(new_idepth == -1) std::cout << "Warning: idepth outside image set to -1" << std::endl;
 
 				float weight = sqrtf(1e-3 / (ph->efPoint->HdiF+1e-12));
 
@@ -730,29 +730,39 @@ bool CoarseTracker::trackNewestCoarse(
 
 void CoarseTracker::debugPlotIDepthMap(float* minID_pt, float* maxID_pt, std::vector<IOWrap::Output3DWrapper*> &wraps)
 {
-    if(w[1] == 0) return;
+	if(w[1] == 0) return;
 
+	const int lvl = 0;
+	const int wl = w[lvl];
+	const int hl = h[lvl];
 
-	int lvl = 0;
-
+	std::vector<float> allID;
+	for(int i=0; i < (hl*wl); i++)
 	{
-		std::cout << "deb" << std::endl;
-		std::vector<float> allID;
-		for(int i=0;i<h[lvl]*w[lvl];i++)
-		{
-			if(idepth[lvl][i] > 0)
-				allID.push_back(idepth[lvl][i]);
-		}
-		std::cout << "aft" << std::endl;
+		if(idepth[lvl][i] > 0)
+			allID.push_back(idepth[lvl][i]);
+	}
+
+	// Initialise debug image
+	MinimalImageB3 mf(wl, hl);
+	mf.setBlack();
+	for(int i=0; i < (hl*wl); i++)
+	{
+		int c = lastRef->dIp[lvl][i][0]*0.9f;
+		if(c>255) c=255;
+		mf.at(i) = Vec3b(c,c,c);
+	}
+		
+	// Check in case all idepths are 0
+	if(!allID.empty())
+	{
 		std::sort(allID.begin(), allID.end());
-		int n = allID.size()-1;
 
-		float minID_new = allID[(int)(n*0.05)];
-		float maxID_new = allID[(int)(n*0.95)];
+		const int n = allID.size()-1;
 
-		float minID, maxID;
-		minID = minID_new;
-		maxID = maxID_new;
+		float	minID = allID[(int)(n * 0.05)],
+			maxID = allID[(int)(n * 0.95)];
+		
 		if(minID_pt!=0 && maxID_pt!=0)
 		{
 			if(*minID_pt < 0 || *maxID_pt < 0)
@@ -762,38 +772,26 @@ void CoarseTracker::debugPlotIDepthMap(float* minID_pt, float* maxID_pt, std::ve
 			}
 			else
 			{
-
 				// slowly adapt: change by maximum 10% of old span.
-				float maxChange = 0.3*(*maxID_pt - *minID_pt);
-
+				const float maxChange = 0.3*(*maxID_pt - *minID_pt);
+	
 				if(minID < *minID_pt - maxChange)
 					minID = *minID_pt - maxChange;
 				if(minID > *minID_pt + maxChange)
 					minID = *minID_pt + maxChange;
-
-
+	
 				if(maxID < *maxID_pt - maxChange)
 					maxID = *maxID_pt - maxChange;
 				if(maxID > *maxID_pt + maxChange)
 					maxID = *maxID_pt + maxChange;
-
+	
 				*maxID_pt = maxID;
 				*minID_pt = minID;
 			}
 		}
 
-		std::cout << "mid" << std::endl;
-		MinimalImageB3 mf(w[lvl], h[lvl]);
-		mf.setBlack();
-		for(int i=0;i<h[lvl]*w[lvl];i++)
-		{
-			int c = lastRef->dIp[lvl][i][0]*0.9f;
-			if(c>255) c=255;
-			mf.at(i) = Vec3b(c,c,c);
-		}
-		int wl = w[lvl];
-		for(int y=3;y<h[lvl]-3;y++)
-			for(int x=3;x<wl-3;x++)
+		for(int y=3; y<(hl-3); y++)
+			for(int x=3; x<(wl-3); x++)
 			{
 				int idx=x+y*wl;
 				float sid=0, nid=0;
@@ -807,26 +805,23 @@ void CoarseTracker::debugPlotIDepthMap(float* minID_pt, float* maxID_pt, std::ve
 
 				if(bp[0] > 0 || nid >= 3)
 				{
-					float id = ((sid / nid)-minID) / ((maxID-minID));
+					const float id = ((sid / nid)-minID) / (maxID-minID);
 					mf.setPixelCirc(x,y,makeJet3B(id));
 					//mf.at(idx) = makeJet3B(id);
 				}
 			}
-        //IOWrap::displayImage("coarseDepth LVL0", &mf, false);
-
-	std::cout << "end" << std::endl;
-        for(IOWrap::Output3DWrapper* ow : wraps)
-            ow->pushDepthImage(&mf);
-
-		if(debugSaveImages)
-		{
-			char buf[1000];
-			snprintf(buf, 1000, "images_out/predicted_%05d_%05d.png", lastRef->shell->id, refFrameID);
-			IOWrap::writeImage(buf,&mf);
-		}
-
 	}
-	std::cout << "_" << std::endl;
+	//IOWrap::displayImage("coarseDepth LVL0", &mf, false);
+
+	for(IOWrap::Output3DWrapper* ow : wraps)
+		ow->pushDepthImage(&mf);
+
+	if(debugSaveImages)
+	{
+		char buf[1000];
+		snprintf(buf, 1000, "images_out/predicted_%05d_%05d.png", lastRef->shell->id, refFrameID);
+		IOWrap::writeImage(buf,&mf);
+	}
 }
 
 

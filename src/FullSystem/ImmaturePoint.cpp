@@ -72,12 +72,13 @@ ImmaturePoint::~ImmaturePoint()
  * * UPDATED -> point has been updated.
  * * SKIP -> point has not been updated.
  */
-ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* frame,const Mat33f &hostToFrame_KRKi, const Vec3f &hostToFrame_Kt, const Vec2f& hostToFrame_affine, CalibHessian* HCalib, bool debugPrint)
+ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* host, FrameHessian* frame,const Mat33f &hostToFrame_KRKi, const Vec3f &hostToFrame_Kt, const Vec2f& hostToFrame_affine, CalibHessian* HCalib, bool debugPrint)
 {
 	if(lastTraceStatus == ImmaturePointStatus::IPS_OOB) return lastTraceStatus;
 
+	debugPrint = false; // rand()%100==0;
 
-	debugPrint = false;//rand()%100==0;
+
 	float maxPixSearch = (wG[0]+hG[0])*setting_maxPixSearch;
 
 	if(debugPrint)
@@ -93,6 +94,8 @@ ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* frame,const Mat33f &hos
 	float uMin = ptpMin[0] / ptpMin[2];
 	float vMin = ptpMin[1] / ptpMin[2];
 
+	//std::cout << "pr: " << pr[0] << ";" << pr[1] << ";" << pr[2] << " and hostToFrame: " << hostToFrame_KRKi << " and " << hostToFrame_Kt << std::endl;
+	
 	if(!(uMin > 4 && vMin > 4 && uMin < wG[0]-5 && vMin < hG[0]-5))
 	{
 		if(debugPrint) printf("OOB uMin %f %f - %f %f %f (id %f-%f)!\n",
@@ -184,6 +187,8 @@ ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* frame,const Mat33f &hos
 	float a = (Vec2f(dx,dy).transpose() * gradH * Vec2f(dx,dy));
 	float b = (Vec2f(dy,-dx).transpose() * gradH * Vec2f(dy,-dx));
 	float errorInPixel = 0.2f + 0.2f * (a+b) / a;
+
+	// std::cout << "err: " << errorInPixel << std::endl;
 
 	if(errorInPixel*setting_trace_minImprovementFactor > dist && std::isfinite(idepth_max))
 	{
@@ -380,22 +385,46 @@ ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* frame,const Mat33f &hos
 
 
 	// ============== set new interval ===================
-	if(dx*dx>dy*dy)
+	// Setting idepth min and max with an external source
+	if(extDepth && (host->getImgIDepthAltSize() > 0))
 	{
-		idepth_min = (pr[2]*(bestU-errorInPixel*dx) - pr[0]) / (hostToFrame_Kt[0] - hostToFrame_Kt[2]*(bestU-errorInPixel*dx));
-		idepth_max = (pr[2]*(bestU+errorInPixel*dx) - pr[0]) / (hostToFrame_Kt[0] - hostToFrame_Kt[2]*(bestU+errorInPixel*dx));
+		printf("+");
+		// If coordinates are within desired ranged for external source
+		if(u > host->getExtLim(0) && v > host->getExtLim(2) && u < host->getExtLim(1) && v < host->getExtLim(3))
+		{
+			float extIDepth = host->getImgIDepthAlt(u, v);
+			if(debugPrint)
+				std::cout << "u: " << u << " v: " << v << "idep: " << extIDepth << std::endl;
+			idepth_min = extIDepth + 0.1 * extIDepth;
+			idepth_max = extIDepth - 0.1 * extIDepth;
+		}
 	}
 	else
 	{
-		idepth_min = (pr[2]*(bestV-errorInPixel*dy) - pr[1]) / (hostToFrame_Kt[1] - hostToFrame_Kt[2]*(bestV-errorInPixel*dy));
-		idepth_max = (pr[2]*(bestV+errorInPixel*dy) - pr[1]) / (hostToFrame_Kt[1] - hostToFrame_Kt[2]*(bestV+errorInPixel*dy));
+		//printf("-");
+		
+		//std::cout << "pr: " << pr[0] << ";" << pr[1] << ";" << pr[2] << "; bU: " << bestU << "; bV: " << bestV << "; err: " << errorInPixel << "; dx: " << dx << "; hostTOFrame_Kt: " << hostToFrame_Kt[0] << ";" << hostToFrame_Kt[1] << ";" << hostToFrame_Kt[2] << std::endl;
+
+		if(dx*dx>dy*dy)
+		{
+			idepth_min = (pr[2]*(bestU-errorInPixel*dx) - pr[0]) / (hostToFrame_Kt[0] - hostToFrame_Kt[2]*(bestU-errorInPixel*dx));
+			idepth_max = (pr[2]*(bestU+errorInPixel*dx) - pr[0]) / (hostToFrame_Kt[0] - hostToFrame_Kt[2]*(bestU+errorInPixel*dx));
+		}
+		else
+		{
+			idepth_min = (pr[2]*(bestV-errorInPixel*dy) - pr[1]) / (hostToFrame_Kt[1] - hostToFrame_Kt[2]*(bestV-errorInPixel*dy));
+			idepth_max = (pr[2]*(bestV+errorInPixel*dy) - pr[1]) / (hostToFrame_Kt[1] - hostToFrame_Kt[2]*(bestV+errorInPixel*dy));
+		}
 	}
 	if(idepth_min > idepth_max) std::swap<float>(idepth_min, idepth_max);
 
 
+	if(debugPrint)
+		printf("minmax depth (%f %f)!\n", idepth_min, idepth_max);
 	if(!std::isfinite(idepth_min) || !std::isfinite(idepth_max) || (idepth_max<0))
 	{
-		//printf("COUGHT INF / NAN minmax depth (%f %f)!\n", idepth_min, idepth_max);
+		if(debugPrint)
+			printf("COUGHT INF / NAN minmax depth (%f %f)!\n", idepth_min, idepth_max);
 
 		lastTracePixelInterval=0;
 		lastTraceUV = Vec2f(-1,-1);

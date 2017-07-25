@@ -482,7 +482,6 @@ int main( int argc, char** argv )
 	fullSystem->linearizeOperation = (playbackSpeed==0);
 
 
-	std::cout << "wg: " << wG[0] << " and hG: " << hG[0] << std::endl;
 	IOWrap::InputDepthWrapper inputDepthWrap(wG[0], hG[0], extDepthFolder);
 	
     	IOWrap::PangolinDSOViewer* viewer = 0;
@@ -605,7 +604,6 @@ int main( int argc, char** argv )
 	    // IMU measurement
 	    Eigen::Vector4f attitudeReadings(1.0, 0.0, 0.0, 0.0);
 	    
-	    std::cout << "depths size: " << inputDepthWrap.getDepths().size() << std::endl;
 	    // clock_t startFrame = clock();
             if(!skipFrame)
 	    {

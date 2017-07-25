@@ -484,14 +484,14 @@
 
 			for(ImmaturePoint* ph : host->immaturePoints)
 			{
-				ph->traceOn(fh, KRKi, Kt, aff, &Hcalib, false );
+				ph->traceOn(host, fh, KRKi, Kt, aff, &Hcalib, false );
 
 				if(ph->lastTraceStatus==ImmaturePointStatus::IPS_GOOD) trace_good++;
-				if(ph->lastTraceStatus==ImmaturePointStatus::IPS_BADCONDITION) trace_badcondition++;
-				if(ph->lastTraceStatus==ImmaturePointStatus::IPS_OOB) trace_oob++;
-				if(ph->lastTraceStatus==ImmaturePointStatus::IPS_OUTLIER) trace_out++;
-				if(ph->lastTraceStatus==ImmaturePointStatus::IPS_SKIPPED) trace_skip++;
-				if(ph->lastTraceStatus==ImmaturePointStatus::IPS_UNINITIALIZED) trace_uninitialized++;
+				else if(ph->lastTraceStatus==ImmaturePointStatus::IPS_BADCONDITION) trace_badcondition++;
+				else if(ph->lastTraceStatus==ImmaturePointStatus::IPS_OOB) trace_oob++;
+				else if(ph->lastTraceStatus==ImmaturePointStatus::IPS_OUTLIER) trace_out++;
+				else if(ph->lastTraceStatus==ImmaturePointStatus::IPS_SKIPPED) trace_skip++;
+				else if(ph->lastTraceStatus==ImmaturePointStatus::IPS_UNINITIALIZED) trace_uninitialized++;
 				trace_total++;
 			}
 		}
@@ -1142,9 +1142,11 @@ void FullSystem::makeKeyFrame( FrameHessian* fh)
 		coarseTracker_forNewKF->setCoarseTrackingRef(frameHessians);
 
 
-
-        coarseTracker_forNewKF->debugPlotIDepthMap(&minIdJetVisTracker, &maxIdJetVisTracker, outputWrapper);
-        coarseTracker_forNewKF->debugPlotIDepthMapFloat(outputWrapper);
+		if(!outputWrapper.empty() || debugSaveImages)
+		{
+			coarseTracker_forNewKF->debugPlotIDepthMap(&minIdJetVisTracker, &maxIdJetVisTracker, outputWrapper);
+			coarseTracker_forNewKF->debugPlotIDepthMapFloat(outputWrapper);
+		}
 	}
 
 
