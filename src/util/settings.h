@@ -52,63 +52,63 @@ extern int pyrLevelsUsed;
 
 
 
-extern float setting_keyframesPerSecond;
-extern bool setting_realTimeMaxKF;
-extern float setting_maxShiftWeightT;
-extern float setting_maxShiftWeightR;
-extern float setting_maxShiftWeightRT;
-extern float setting_maxAffineWeight;
+extern const float setting_keyframesPerSecond;
+extern const bool setting_realTimeMaxKF;
+extern const float setting_maxShiftWeightT;
+extern const float setting_maxShiftWeightR;
+extern const float setting_maxShiftWeightRT;
+extern const float setting_maxAffineWeight;
 extern float setting_kfGlobalWeight;
 
 
 
-extern float setting_idepthFixPrior;
-extern float setting_idepthFixPriorMargFac;
-extern float setting_initialRotPrior;
-extern float setting_initialTransPrior;
-extern float setting_initialAffBPrior;
-extern float setting_initialAffAPrior;
-extern float setting_initialCalibHessian;
+extern const float setting_idepthFixPrior;
+extern const float setting_idepthFixPriorMargFac;
+extern const float setting_initialRotPrior;
+extern const float setting_initialTransPrior;
+extern const float setting_initialAffBPrior;
+extern const float setting_initialAffAPrior;
+extern const float setting_initialCalibHessian;
 
-extern int setting_solverMode;
-extern double setting_solverModeDelta;
-
-
-extern float setting_minIdepthH_act;
-extern float setting_minIdepthH_marg;
+extern const int setting_solverMode;
+extern const double setting_solverModeDelta;
 
 
+extern const float setting_minIdepthH_act;
+extern const float setting_minIdepthH_marg;
 
-extern float setting_maxIdepth;
-extern float setting_maxPixSearch;
+
+
+extern const float setting_maxIdepth;
+extern const float setting_maxPixSearch;
 extern float setting_desiredImmatureDensity;			// done
 extern float setting_desiredPointDensity;			// done
-extern float setting_minPointsRemaining;
-extern float setting_maxLogAffFacInWindow;
+extern const float setting_minPointsRemaining;
+extern const float setting_maxLogAffFacInWindow;
 extern int setting_minFrames;
 extern int setting_maxFrames;
-extern int setting_minFrameAge;
+extern const int setting_minFrameAge;
 extern int setting_maxOptIterations;
 extern int setting_minOptIterations;
-extern float setting_thOptIterations;
-extern float setting_outlierTH;
-extern float setting_outlierTHSumComponent;
+extern const float setting_thOptIterations;
+extern const float setting_outlierTH;
+extern const float setting_outlierTHSumComponent;
 
 
 
-extern int setting_pattern;
-extern float setting_margWeightFac;
-extern int setting_GNItsOnPointActivation;
+extern const int setting_pattern;
+extern const float setting_margWeightFac;
+extern const int setting_GNItsOnPointActivation;
 
 
-extern float setting_minTraceQuality;
-extern int setting_minTraceTestRadius;
-extern float setting_reTrackThreshold;
+extern const float setting_minTraceQuality;
+extern const int setting_minTraceTestRadius;
+extern const float setting_reTrackThreshold;
 
 
-extern int   setting_minGoodActiveResForMarg;
-extern int   setting_minGoodResForMarg;
-extern int   setting_minInlierVotesForMarg;
+extern const int   setting_minGoodActiveResForMarg;
+extern const int   setting_minGoodResForMarg;
+extern const int   setting_minInlierVotesForMarg;
 
 
 
@@ -117,46 +117,46 @@ extern int setting_photometricCalibration;
 extern bool setting_useExposure;
 extern float setting_affineOptModeA;
 extern float setting_affineOptModeB;
-extern int setting_gammaWeightsPixelSelect;
+extern const int setting_gammaWeightsPixelSelect;
 
 
 
-extern bool setting_forceAceptStep;
+extern const bool setting_forceAceptStep;
 
 
 
-extern float setting_huberTH;
+extern const float setting_huberTH;
 
 
 extern bool setting_logStuff;
-extern float benchmarkSetting_fxfyfac;
+extern const float benchmarkSetting_fxfyfac;
 extern int benchmarkSetting_width;
 extern int benchmarkSetting_height;
-extern float benchmark_varNoise;
-extern float benchmark_varBlurNoise;
-extern int benchmark_noiseGridsize;
-extern float benchmark_initializerSlackFactor;
+extern const float benchmark_varNoise;
+extern const float benchmark_varBlurNoise;
+extern const int benchmark_noiseGridsize;
+extern const float benchmark_initializerSlackFactor;
 
-extern float setting_frameEnergyTHConstWeight;
-extern float setting_frameEnergyTHN;
+extern const float setting_frameEnergyTHConstWeight;
+extern const float setting_frameEnergyTHN;
 
-extern float setting_frameEnergyTHFacMedian;
-extern float setting_overallEnergyTHWeight;
-extern float setting_coarseCutoffTH;
+extern const float setting_frameEnergyTHFacMedian;
+extern const float setting_overallEnergyTHWeight;
+extern const float setting_coarseCutoffTH;
 
-extern float setting_minGradHistCut;
+extern const float setting_minGradHistCut;
 extern float setting_minGradHistAdd;
-extern float setting_gradDownweightPerLevel;
-extern bool  setting_selectDirectionDistribution;
+extern const float setting_gradDownweightPerLevel;
+extern const bool  setting_selectDirectionDistribution;
 
 
 
-extern float setting_trace_stepsize;
-extern int setting_trace_GNIterations;
-extern float setting_trace_GNThreshold;
-extern float setting_trace_extraSlackOnTH;
-extern float setting_trace_slackInterval;
-extern float setting_trace_minImprovementFactor;
+extern const float setting_trace_stepsize;
+extern const int setting_trace_GNIterations;
+extern const float setting_trace_GNThreshold;
+extern const float setting_trace_extraSlackOnTH;
+extern const float setting_trace_slackInterval;
+extern const float setting_trace_minImprovementFactor;
 
 
 extern bool setting_render_displayCoarseTrackingFull;
@@ -184,7 +184,7 @@ extern bool debugSaveImages;
 
 
 extern int sparsityFactor;
-extern bool goStepByStep;
+extern const bool goStepByStep;
 extern bool plotStereoImages;
 extern bool multiThreading;
 extern bool onlineCam;
@@ -202,9 +202,9 @@ void handleKey(char k);
 
 
 
-extern int staticPattern[10][40][2];
-extern int staticPatternNum[10];
-extern int staticPatternPadding[10];
+extern const  int staticPattern[10][40][2];
+extern const int staticPatternNum[10];
+extern const int staticPatternPadding[10];
 
 
 

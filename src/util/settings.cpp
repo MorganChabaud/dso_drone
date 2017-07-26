@@ -33,78 +33,78 @@ int pyrLevelsUsed = PYR_LEVELS;
 
 
 /* Parameters controlling when KF's are taken */
-float setting_keyframesPerSecond = 0;   // if !=0, takes a fixed number of KF per second.
-bool setting_realTimeMaxKF = false;   // if true, takes as many KF's as possible (will break the system if the camera stays stationary)
-float setting_maxShiftWeightT= 0.04f * (640+480);
-float setting_maxShiftWeightR= 0.0f * (640+480);
-float setting_maxShiftWeightRT= 0.02f * (640+480);
+const float setting_keyframesPerSecond = 0;   // if !=0, takes a fixed number of KF per second.
+const bool setting_realTimeMaxKF = false;   // if true, takes as many KF's as possible (will break the system if the camera stays stationary)
+const float setting_maxShiftWeightT= 0.04f * (640+480);
+const float setting_maxShiftWeightR= 0.0f * (640+480);
+const float setting_maxShiftWeightRT= 0.02f * (640+480);
 float setting_kfGlobalWeight = 1;   // general weight on threshold, the larger the more KF's are taken (e.g., 2 = double the amount of KF's).
-float setting_maxAffineWeight= 2;
+const float setting_maxAffineWeight= 2;
 
 
 /* initial hessian values to fix unobservable dimensions / priors on affine lighting parameters.
  */
-float setting_idepthFixPrior = 50*50;
-float setting_idepthFixPriorMargFac = 600*600;
-float setting_initialRotPrior = 1e11;
-float setting_initialTransPrior = 1e10;
-float setting_initialAffBPrior = 1e14;
-float setting_initialAffAPrior = 1e14;
-float setting_initialCalibHessian = 5e9;
+const float setting_idepthFixPrior = 50*50;
+const float setting_idepthFixPriorMargFac = 600*600;
+const float setting_initialRotPrior = 1e11;
+const float setting_initialTransPrior = 1e10;
+const float setting_initialAffBPrior = 1e14;
+const float setting_initialAffAPrior = 1e14;
+const float setting_initialCalibHessian = 5e9;
 
 
 
 
 
 /* some modes for solving the resulting linear system (e.g. orthogonalize wrt. unobservable dimensions) */
-int setting_solverMode = SOLVER_FIX_LAMBDA | SOLVER_ORTHOGONALIZE_X_LATER;
-double setting_solverModeDelta = 0.00001;
-bool setting_forceAceptStep = true;
+const int setting_solverMode = SOLVER_FIX_LAMBDA | SOLVER_ORTHOGONALIZE_X_LATER;
+const double setting_solverModeDelta = 0.00001;
+const bool setting_forceAceptStep = true;
 
 
 
 /* some thresholds on when to activate / marginalize points */
-float setting_minIdepthH_act = 100;
-float setting_minIdepthH_marg = 50;
+const float setting_minIdepthH_act = 100;
+const float setting_minIdepthH_marg = 50;
 
 
 
 float setting_desiredImmatureDensity = 1500; // immature points per frame
 float setting_desiredPointDensity = 2000; // aimed total points in the active window.
-float setting_minPointsRemaining = 0.05;  // marg a frame if less than X% points remain.
-float setting_maxLogAffFacInWindow = 0.7; // marg a frame if factor between intensities to current frame is larger than 1/X or X.
+const float setting_minPointsRemaining = 0.05;  // marg a frame if less than X% points remain.
+const float setting_maxLogAffFacInWindow = 0.7; // marg a frame if factor between intensities to current frame is larger than 1/X or X.
 
 
 int   setting_minFrames = 5; // min frames in window.
 int   setting_maxFrames = 7; // max frames in window.
-int   setting_minFrameAge = 1;
+const int   setting_minFrameAge = 1;
 int   setting_maxOptIterations=6; // max GN iterations.
 int   setting_minOptIterations=1; // min GN iterations.
-float setting_thOptIterations=1.2; // factor on break threshold for GN iteration (larger = break earlier)
+const float setting_thOptIterations=1.2; // factor on break threshold for GN iteration (larger = break earlier)
 
 
 
 
 
 /* Outlier Threshold on photometric energy */
-float setting_outlierTH = 12*12;					// higher -> less strict
-float setting_outlierTHSumComponent = 50*50; 		// higher -> less strong gradient-based reweighting .
+const float setting_outlierTH = 12*12;					// higher -> less strict
+const float setting_outlierTHSumComponent = 50*50; 		// higher -> less strong gradient-based reweighting .
 
 
 
 
-int setting_pattern = 8;						// point pattern used. DISABLED.
-float setting_margWeightFac = 0.5*0.5;          // factor on hessian when marginalizing, to account for inaccurate linearization points.
+const int setting_pattern = 8;						// point pattern used. DISABLED.
+const float setting_margWeightFac = 0.5*0.5;          // factor on hessian when marginalizing, to account for inaccurate linearization points.
 
 
 /* when to re-track a frame */
-float setting_reTrackThreshold = 1.5; // (larger = re-track more often)
+const float setting_reTrackThreshold = 1.5; // (larger = re-track more often)
 
 
 
 /* require some minimum number of residuals for a point to become valid */
-int   setting_minGoodActiveResForMarg=3;
-int   setting_minGoodResForMarg=4;
+const int   setting_minGoodActiveResForMarg=3;
+const int   setting_minGoodResForMarg=4;
 
 
 
@@ -119,33 +119,33 @@ bool setting_useExposure = true;
 float setting_affineOptModeA = 1e12; //-1: fix. >=0: optimize (with prior, if > 0).
 float setting_affineOptModeB = 1e8; //-1: fix. >=0: optimize (with prior, if > 0).
 
-int setting_gammaWeightsPixelSelect = 1; // 1 = use original intensity for pixel selection; 0 = use gamma-corrected intensity.
+const int setting_gammaWeightsPixelSelect = 1; // 1 = use original intensity for pixel selection; 0 = use gamma-corrected intensity.
 
 
 
 
-float setting_huberTH = 9; // Huber Threshold
+const float setting_huberTH = 9; // Huber Threshold
 
 
 
 
 
 // parameters controlling adaptive energy threshold computation.
-float setting_frameEnergyTHConstWeight = 0.5;
-float setting_frameEnergyTHN = 0.7f;
-float setting_frameEnergyTHFacMedian = 1.5;
-float setting_overallEnergyTHWeight = 1;
-float setting_coarseCutoffTH = 20;
+const float setting_frameEnergyTHConstWeight = 0.5;
+const float setting_frameEnergyTHN = 0.7f;
+const float setting_frameEnergyTHFacMedian = 1.5;
+const float setting_overallEnergyTHWeight = 1;
+const float setting_coarseCutoffTH = 20;
 
 
 
 
 
 // parameters controlling pixel selection
-float setting_minGradHistCut = 0.5;
+const float setting_minGradHistCut = 0.5;
 float setting_minGradHistAdd = 7;
-float setting_gradDownweightPerLevel = 0.75;
-bool  setting_selectDirectionDistribution = true;
+const float setting_gradDownweightPerLevel = 0.75;
+const bool  setting_selectDirectionDistribution = true;
 
 
 
@@ -153,28 +153,28 @@ bool  setting_selectDirectionDistribution = true;
 
 
 /* settings controling initial immature point tracking */
-float setting_maxPixSearch = 0.027; // max length of the ep. line segment searched during immature point tracking. relative to image resolution.
-float setting_minTraceQuality = 3;
-int setting_minTraceTestRadius = 2;
-int setting_GNItsOnPointActivation = 3;
-float setting_trace_stepsize = 1.0;				// stepsize for initial discrete search.
-int setting_trace_GNIterations = 3;				// max # GN iterations
-float setting_trace_GNThreshold = 0.1;				// GN stop after this stepsize.
-float setting_trace_extraSlackOnTH = 1.2;			// for energy-based outlier check, be slightly more relaxed by this factor.
-float setting_trace_slackInterval = 1.5;			// if pixel-interval is smaller than this, leave it be.
-float setting_trace_minImprovementFactor = 2;		// if pixel-interval is smaller than this, leave it be.
+const float setting_maxPixSearch = 0.027; // max length of the ep. line segment searched during immature point tracking. relative to image resolution.
+const float setting_minTraceQuality = 3;
+const int setting_minTraceTestRadius = 2;
+const int setting_GNItsOnPointActivation = 3;
+const float setting_trace_stepsize = 1.0;				// stepsize for initial discrete search.
+const int setting_trace_GNIterations = 3;				// max # GN iterations
+const float setting_trace_GNThreshold = 0.1;				// GN stop after this stepsize.
+const float setting_trace_extraSlackOnTH = 1.2;			// for energy-based outlier check, be slightly more relaxed by this factor.
+const float setting_trace_slackInterval = 1.5;			// if pixel-interval is smaller than this, leave it be.
+const float setting_trace_minImprovementFactor = 2;		// if pixel-interval is smaller than this, leave it be.
 
 
 
 
 // for benchmarking different undistortion settings
-float benchmarkSetting_fxfyfac = 0;
+const float benchmarkSetting_fxfyfac = 0;
 int benchmarkSetting_width = 0;
 int benchmarkSetting_height = 0;
-float benchmark_varNoise = 0;
-float benchmark_varBlurNoise = 0;
-float benchmark_initializerSlackFactor = 1;
-int benchmark_noiseGridsize = 3;
+const float benchmark_varNoise = 0;
+const float benchmark_varBlurNoise = 0;
+const float benchmark_initializerSlackFactor = 1;
+const int benchmark_noiseGridsize = 3;
 
 
 float freeDebugParam1 = 1;
@@ -194,7 +194,7 @@ bool setting_logStuff = true;
 bool onlineCam = false;
 bool extDepth = false;
 
-bool goStepByStep = false;
+const bool goStepByStep = false;
 
 
 bool setting_render_displayCoarseTrackingFull=false;
@@ -232,7 +232,7 @@ void handleKey(char k)
 
 
 
-int staticPattern[10][40][2] = {
+const int staticPattern[10][40][2] = {
 		{{0,0}, 	  {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100},	// .
 		 {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100},
 		 {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100},
@@ -284,7 +284,7 @@ int staticPattern[10][40][2] = {
 		 {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}},
 };
 
-int staticPatternNum[10] = {
+const int staticPatternNum[10] = {
 		1,
 		5,
 		5,
@@ -297,7 +297,7 @@ int staticPatternNum[10] = {
 		25
 };
 
-int staticPatternPadding[10] = {
+const int staticPatternPadding[10] = {
 		1,
 		1,
 		1,

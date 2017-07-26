@@ -137,7 +137,7 @@ add_library(dso ${dso_SOURCE_FILES} ${dso_opencv_SOURCE_FILES} ${dso_pangolin_SO
 #set_property( TARGET dso APPEND_STRING PROPERTY COMPILE_FLAGS -Wall )
 
 
-# build main executable (only if we have both OpenCV and Pangolin)
+# build original dso_dataset (might be deleted at some point) (only if we have both OpenCV and Pangolin)
 #if (OpenCV_FOUND AND Pangolin_FOUND)
 #	message("--- compiling dso_dataset.")
 #	add_executable(dso_dataset ${PROJECT_SOURCE_DIR}/src/main_dso_pangolin.cpp )
@@ -146,6 +146,7 @@ add_library(dso ${dso_SOURCE_FILES} ${dso_opencv_SOURCE_FILES} ${dso_pangolin_SO
 #	message("--- not building dso_dataset, since either don't have openCV or Pangolin.")
 #endif()
 
+# Build dso_drone
 if(OpenCV_FOUND AND Pangolin_FOUND AND raspicam_CV_FOUND)
 	message("--- Compiling dso_drone.")
 	add_executable(dso_drone ${PROJECT_SOURCE_DIR}/src/main_drone.cpp)
