@@ -5,6 +5,7 @@ The goal is to make it run on Raspberry Pi 3 (on a drone) and add scale informat
 
 DSO Drone is developed at CNES (Centre National d'Etudes Spatiales)
 
+***************************** IN DEVELOPMENT *****************************
 
 # DSO: Direct Sparse Odometry
 
