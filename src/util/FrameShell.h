@@ -47,6 +47,7 @@ public:
 	SE3 camToWorld;				// Write: TRACKING, while frame is still fresh; MAPPING: only when locked [shellPoseMutex].
 	AffLight aff_g2l;
 	bool poseValid;
+	double realScale;
 
 	// statisitcs
 	int statistics_outlierResOnThis;
@@ -60,6 +61,7 @@ public:
 		id=0;
 		poseValid=true;
 		camToWorld = SE3();
+		realScale = 1;
 		timestamp=0;
 		marginalizedAt=-1;
 		movedByOpt=0;

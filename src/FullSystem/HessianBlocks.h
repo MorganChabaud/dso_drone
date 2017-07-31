@@ -32,6 +32,7 @@
 #include <iostream>
 #include <fstream>
 #include "util/NumType.h"
+#include "util/FrameShell.h"
 #include "FullSystem/Residuals.h"
 #include "util/ImageAndExposure.h"
 
@@ -50,7 +51,6 @@ struct FrameHessian;
 struct PointHessian;
 
 class ImmaturePoint;
-class FrameShell;
 
 class EFFrame;
 class EFPoint;
@@ -144,7 +144,6 @@ struct FrameHessian
 
 	Eigen::Vector4f inputDepthLimits; // In order: 0: minX | 1: maxX | 2: minY | 3: maxY
 
-
 	Mat66 nullspaces_pose;
 	Mat42 nullspaces_affine;
 	Vec6 nullspaces_scale;
@@ -167,6 +166,8 @@ struct FrameHessian
 	EIGEN_STRONG_INLINE float getImgIDepthAlt(int x, int y){ return imgIDepthsAlt[y * wG[0] + x]; }
 	EIGEN_STRONG_INLINE float getExtLim(int i){ return inputDepthLimits[i]; }	// i values: 0: minX | 1: maxX | 2: minY | 3: maxY
 	EIGEN_STRONG_INLINE std::vector<float>::size_type getImgIDepthAltSize(){ return imgIDepthsAlt.size(); }
+	EIGEN_STRONG_INLINE double getRealScale(){ return shell->realScale; }
+	
 	// precalc values
 	SE3 PRE_worldToCam;
 	SE3 PRE_camToWorld;
@@ -180,7 +181,8 @@ struct FrameHessian
 
 	inline void setImgIDepthsAlt(const std::vector<float> & imgIDepths){ imgIDepthsAlt = imgIDepths; }
 	inline void setInputDepthLimits(const Eigen::Vector4f & inputDepthLimits){ this->inputDepthLimits = inputDepthLimits; }
-	
+	inline void setRealScale(double scale){ shell->realScale = scale; }	
+
 	void setStateZero(const Vec10 &state_zero);
 	inline void setState(const Vec10 &state)
 	{
@@ -256,8 +258,6 @@ struct FrameHessian
 		frameID = -1;
 		efFrame = 0;
 		frameEnergyTH = 8*8*patternNum;
-
-
 
 		debugImage=0;
 	};

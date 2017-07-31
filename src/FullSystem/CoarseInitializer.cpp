@@ -82,8 +82,8 @@ bool CoarseInitializer::trackFrame(FrameHessian* newFrameHessian, std::vector<IO
 {
 	newFrame = newFrameHessian;
 
-    for(IOWrap::Output3DWrapper* ow : wraps)
-        ow->pushLiveFrame(newFrameHessian);
+	for(IOWrap::Output3DWrapper* ow : wraps)
+		ow->pushLiveFrame(newFrameHessian);
 
 	int maxIterations[] = {5,5,10,30,50};
 
@@ -96,7 +96,7 @@ bool CoarseInitializer::trackFrame(FrameHessian* newFrameHessian, std::vector<IO
 
 	if(!snapped)
 	{
-		bool useExtIDepth = (extDepth && (newFrame->getImgIDepthAltSize() > 0)) ? true : false;
+		bool useExtIDepth = false; //(extDepth && (newFrame->getImgIDepthAltSize() > 0)) ? true : false;
 		thisToNext.translation().setZero();
 		for(int lvl=0;lvl<pyrLevelsUsed;lvl++)
 		{

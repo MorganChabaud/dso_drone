@@ -252,6 +252,7 @@
 		myfile.open (file.c_str());
 		myfile << std::setprecision(15);
 
+		std::cout << "Checkin history: ";
 		for(FrameShell* s : allFrameHistory)
 		{
 			if(!s->poseValid) continue;
@@ -259,12 +260,17 @@
 			if(setting_onlyLogKFPoses && s->marginalizedAt == s->id) continue;
 
 			myfile << s->timestamp <<
-				" " << s->camToWorld.translation().transpose()<<
-				" " << s->camToWorld.so3().unit_quaternion().x()<<
-				" " << s->camToWorld.so3().unit_quaternion().y()<<
-				" " << s->camToWorld.so3().unit_quaternion().z()<<
-				" " << s->camToWorld.so3().unit_quaternion().w() << "\n";
+				" " << s->camToWorld.translation().transpose() <<
+				" " << s->camToWorld.so3().unit_quaternion().x() <<
+				" " << s->camToWorld.so3().unit_quaternion().y() <<
+				" " << s->camToWorld.so3().unit_quaternion().z() <<
+				" " << s->camToWorld.so3().unit_quaternion().w() <<
+			       	" scale: " << s->realScale << 
+				" " << (s->camToWorld.translation().transpose() / s->realScale) << std::endl;
+			
+			std::cout << s->realScale << "; ";
 		}
+		std::cout << std::endl;
 		myfile.close();
 	}
 
@@ -313,7 +319,7 @@
 			// just try a TON of different initializations (all rotations). In the end,
 			// if they don't work they will only be tried on the coarsest level, which is super fast anyway.
 			// also, if tracking rails here we loose, so we really, really want to avoid that.
-			for(float rotDelta=0.02; rotDelta < 0.05; rotDelta++)
+			for(float rotDelta=0; rotDelta < 0.6; rotDelta+= 0.01)
 			{
 				lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,rotDelta,0,0), Vec3(0,0,0)));			// assume constant motion.
 				lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,0,rotDelta,0), Vec3(0,0,0)));			// assume constant motion.
@@ -1032,6 +1038,9 @@ void FullSystem::makeNonKeyFrame( FrameHessian* fh)
 		assert(fh->shell->trackingRef != 0);
 		fh->shell->camToWorld = fh->shell->trackingRef->camToWorld * fh->shell->camToTrackingRef;
 		fh->setEvalPT_scaled(fh->shell->camToWorld.inverse(),fh->shell->aff_g2l);
+		
+		// Set the real scale equal to the one of the tracking reference (it is not exact and should be refined...)
+		fh->setRealScale(fh->shell->trackingRef->realScale);
 	}
 
 	traceNewCoarse(fh);

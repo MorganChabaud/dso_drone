@@ -138,9 +138,13 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 	// make coarse tracking templates for latstRef.
 	memset(idepth[0], 0, sizeof(float)*w[0]*h[0]);
 	memset(weightSums[0], 0, sizeof(float)*w[0]*h[0]);
+	double previousScaleMean = 1; // Newest frameHessian don't have any points so scale cannot be estimated with these
+	
 	for(FrameHessian* fh : frameHessians)
 	{
-		//bool useExtIDepth = (extDepth && (fh->getImgIDepthAltSize() > 0)) ? true : false;
+		double scaleMean = 0;
+		int scaleCount = 0;
+		bool useExtIDepth = (extDepth && (fh->getImgIDepthAltSize() > 0)) ? true : false;
 		for(PointHessian* ph : fh->pointHessians)
 		{
 			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::IN)
@@ -155,6 +159,12 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				//	new_idepth = (u > fh->getExtLim(0) && v > fh->getExtLim(2) && u < fh->getExtLim(1) && v < fh->getExtLim(3)) ? fh->getImgIDepthAlt((u-1), (v-1)) : r->centerProjectedTo[2];
 				//else
 				new_idepth = r->centerProjectedTo[2];
+				if(useExtIDepth && (u > fh->getExtLim(0) && v > fh->getExtLim(2) && u < fh->getExtLim(1) && v < fh->getExtLim(3)))
+				{
+					//std::cout << "idep: " << new_idepth << " and scale: " << (fh->getImgIDepthAlt(u, v) / new_idepth) << std::endl;
+					scaleMean += fh->getImgIDepthAlt(u, v) / new_idepth;
+					scaleCount++;
+				}
 				//std::cout << "idep: " << new_idepth << " and proj: " << r->centerProjectedTo[2] << std::endl;
 				//if(new_idepth == -1) std::cout << "Warning: idepth outside image set to -1" << std::endl;
 
@@ -164,8 +174,24 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				weightSums[0][u+w[0]*v] += weight;
 			}
 		}
+
+		if(useExtIDepth)
+		{
+			// Check if there were points on this frameHessian
+			if(scaleCount == 0)
+				scaleMean = previousScaleMean;
+			else
+				scaleMean /= scaleCount;
+			
+			std::cout << "Scale: " << scaleMean << " and count: " << scaleCount << std::endl;
+			fh->setRealScale(scaleMean);
+
+			// Store current scale mean for the next frameHessian
+			previousScaleMean = scaleMean;
+		}
 	}
 
+	
 
 	for(int lvl=1; lvl<pyrLevelsUsed; lvl++)
 	{

@@ -388,15 +388,16 @@ ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* host, FrameHessian* fra
 	// Setting idepth min and max with an external source
 	if(extDepth && (host->getImgIDepthAltSize() > 0))
 	{
-		printf("+");
+		//printf("+");
 		// If coordinates are within desired ranged for external source
 		if(u > host->getExtLim(0) && v > host->getExtLim(2) && u < host->getExtLim(1) && v < host->getExtLim(3))
 		{
 			float extIDepth = host->getImgIDepthAlt(u, v);
 			if(debugPrint)
 				std::cout << "u: " << u << " v: " << v << "idep: " << extIDepth << std::endl;
-			idepth_min = extIDepth + 0.1 * extIDepth;
-			idepth_max = extIDepth - 0.1 * extIDepth;
+			idepth_min = (extIDepth + 0.1 * extIDepth) / host->getRealScale();
+			idepth_max = (extIDepth - 0.1 * extIDepth) / host->getRealScale();
+			//std::cout << "scale: " << host->getRealScale() << "min: " << idepth_min << " max: " << idepth_max << std::endl;
 		}
 	}
 	else
