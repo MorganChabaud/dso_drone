@@ -23,6 +23,7 @@ find_package(raspicam REQUIRED)
 find_package(LibZip QUIET)
 find_package(Pangolin 0.2 QUIET)
 find_package(OpenCV QUIET)
+find_package(Threads QUIET)
 
 # flags
 set(CMAKE_CXX_FLAGS
@@ -150,7 +151,7 @@ add_library(dso ${dso_SOURCE_FILES} ${dso_opencv_SOURCE_FILES} ${dso_pangolin_SO
 if(OpenCV_FOUND AND Pangolin_FOUND AND raspicam_CV_FOUND)
 	message("--- Compiling dso_drone.")
 	add_executable(dso_drone ${PROJECT_SOURCE_DIR}/src/main_drone.cpp)
-	target_link_libraries(dso_drone dso boost_system boost_thread cxsparse ${LIBZIP_LIBRARY} ${Pangolin_LIBRARIES} ${OpenCV_LIBS} ${raspicam_CV_LIBS})
+	target_link_libraries(dso_drone dso boost_system boost_thread cxsparse ${LIBZIP_LIBRARY} ${Pangolin_LIBRARIES} ${OpenCV_LIBS} ${raspicam_CV_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 else()
 	message("--- Not building dso_drone, since either don't have openCV or Pangolin or raspicam.")
 endif()
