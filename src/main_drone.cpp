@@ -382,27 +382,44 @@ void parseArgument(char* arg)
 		return;
 	}
 
-	if(1==sscanf(arg, "minXDepth=%D", &extDepth_minX))
+	if(1==sscanf(arg, "minXDepth=%d", &extDepth_minX))
 	{
 		std::cout << "External depth min X: " << extDepth_minX << std::endl;
 		return;
 	}
 
-	if(1==sscanf(arg, "maxXDepth=%D", &extDepth_maxX))
+	if(1==sscanf(arg, "maxXDepth=%d", &extDepth_maxX))
 	{
 		std::cout << "External depth max X: " << extDepth_maxX << std::endl;
 		return;
 	}
 
-	if(1==sscanf(arg, "minYDepth=%D", &extDepth_minY))
+	if(1==sscanf(arg, "minYDepth=%d", &extDepth_minY))
 	{
 		std::cout << "External depth min Y: " << extDepth_minY << std::endl;
 		return;
 	}
 
-	if(1==sscanf(arg, "maxYDepth=%D", &extDepth_maxY))
+	if(1==sscanf(arg, "maxYDepth=%d", &extDepth_maxY))
 	{
 		std::cout << "External depth max Y: " << extDepth_maxY << std::endl;
+		return;
+	}
+
+	if(1==sscanf(arg, "trajLog=%d", &option))
+	{
+		trajLog = option;
+		
+		if(42==system("mkdir logs")) printf("system call returned 42 - what are the odds?. This is only here to shut up the compiler.\n");
+		
+		std::cout << "TRAJECTORY LOGGING!" << std::endl;
+		return;
+	}
+
+	if(1==sscanf(arg, "timings=%d", &option))
+	{
+		printTimings = option;
+		std::cout << "PRINTING TIMINGS!" << std::endl;
 		return;
 	}
 
@@ -572,7 +589,7 @@ int main( int argc, char** argv )
 		cam.grab();
 		cam.retrieve(onlineImg);
 		reader->setCurrentImg(&onlineImg);
-		img = reader->getImage(0); // 0: the parameter won't be taken into account (because onlineCam = true)
+		img = reader->getImage(i); // The parameter won't be taken into account (because onlineCam = true)
 	    }	
 	    else
                 img = reader->getImage(i);
@@ -660,6 +677,13 @@ int main( int argc, char** argv )
 		//std::cout << "State (pos, quat): ";
 		//fullSystem->printPose();
 		//std::cout << std::endl;
+
+		if(trajLog)
+		{
+			fullSystem->logLastPose(i);
+			fullSystem->logLastDepth(i);
+		}
+
 
 		imgIdx++;
         }

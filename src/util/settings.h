@@ -187,8 +187,10 @@ extern int sparsityFactor;
 extern const bool goStepByStep;
 extern bool plotStereoImages;
 extern bool multiThreading;
-extern bool onlineCam;
-extern bool extDepth;
+extern bool onlineCam; // Capture images with onboard camera
+extern bool extDepth; // External depth file is taken into account during processing
+extern bool trajLog; // Trajectory logging (depth images and camera pose at each new image are logged in a separate file)
+extern bool printTimings; // Display some function timings on the console
 
 extern float freeDebugParam1;
 extern float freeDebugParam2;
@@ -208,12 +210,6 @@ extern const int staticPatternPadding[10];
 
 
 
-
-//#define patternNum staticPatternNum[setting_pattern]
-//#define patternP staticPattern[setting_pattern]
-//#define patternPadding staticPatternPadding[setting_pattern]
-
-//
 #define patternNum 8
 #define patternP staticPattern[8]
 #define patternPadding 2

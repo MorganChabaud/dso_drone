@@ -183,7 +183,7 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 			else
 				scaleMean /= scaleCount;
 			
-			std::cout << "Scale: " << scaleMean << " and count: " << scaleCount << std::endl;
+			std::cout << "fh: " << fh->frameID << "Scale: " << scaleMean << "(" << fh->shell << ") and count: " << scaleCount << std::endl;
 			fh->setRealScale(scaleMean);
 
 			// Store current scale mean for the next frameHessian

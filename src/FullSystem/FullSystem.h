@@ -151,6 +151,10 @@ public:
 
 	void debugPlot(std::string name);
 
+	void initTrajLogs();
+	void logLastPose(int fileIndex);
+	void logLastDepth(int fileIndex);
+
 	void printFrameLifetimes();
 	// contains pointers to active frames
 
@@ -236,6 +240,9 @@ private:
 	std::ofstream* nullspacesLog;
 
 	std::ofstream* coarseTrackingLog;
+
+	const std::string poseLogFileName = "logs/pose.csv";
+	const std::string depthLogFileBaseName = "logs/depth";
 
 	// statistics
 	long int statistics_lastNumOptIts;

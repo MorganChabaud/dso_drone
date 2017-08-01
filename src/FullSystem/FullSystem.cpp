@@ -209,6 +209,74 @@
 		delete ef;
 	}
 
+	void FullSystem::initTrajLogs()
+	{
+		std::ofstream poseLogFile(poseLogFileName, std::ios::trunc | std::ios::out);
+
+		if(poseLogFile.is_open())
+		{
+			poseLogFile << "image index;x;y;z;qw;qx;qy;qz;scale" << std::endl;
+			poseLogFile.flush();
+			poseLogFile.close();
+		}
+		else
+			std::cout << "Unable to open " << poseLogFileName << std::endl;
+	}
+
+	void FullSystem::logLastPose(int fileIndex)
+	{
+		if(allFrameHistory.size() > 2) // Want the second to last frame
+		{
+			FrameShell* frame = allFrameHistory[allFrameHistory.size() - 2];
+
+			std::ofstream poseLogFile(poseLogFileName, std::ios::app | std::ios::out);
+
+			if(poseLogFile.is_open())
+			{
+				poseLogFile << fileIndex << ";" << frame->camToWorld.translation()[0] << ";" << frame->camToWorld.translation()[1] << ";" << frame->camToWorld.translation()[2] << ";" << frame->camToWorld.so3().unit_quaternion().w() << ";" << frame->camToWorld.so3().unit_quaternion().x() << ";" << frame->camToWorld.so3().unit_quaternion().y() << ";" << frame->camToWorld.so3().unit_quaternion().z() << ";" <<frame->realScale << std::endl;
+
+				poseLogFile.flush();
+				poseLogFile.close();
+			}
+		}
+	}
+
+	void FullSystem::logLastDepth(int fileIndex)
+	{
+		
+		if(frameHessians.size() > 2) // Want the second to last frame
+		{
+			// Return if it is not a keyframe as there is no depth for this frame
+			if(allFrameHistory.size() > 2 && allFrameHistory[allFrameHistory.size() - 2] == frameHessians[frameHessians.size() - 2]->shell)
+			{
+				std::cout << "Logggggggggggggggin" << std::endl;
+				Eigen::Matrix<double, 3, 4> const & camToWorld = frameHessians[frameHessians.size() - 2]->shell->camToWorld.matrix3x4();
+			
+				std::string fileName(depthLogFileBaseName + std::to_string(fileIndex) + ".csv");
+				std::ofstream depthLogFile(fileName, std::ios::trunc | std::ios::out);
+
+				std::vector<PointHessian*> const & points = frameHessians[frameHessians.size() - 2]->pointHessians;
+
+				if(depthLogFile.is_open())
+				{
+					// Writing header
+					depthLogFile << "u;v;depth;depth standard deviation" << std::endl;
+
+					// Going through all marginalized points
+					for(PointHessian const * p : points)
+					{
+						depthLogFile << p->u << ";" << p->v << ";" << (1.0f / p->idepth) << ";" << sqrt(1.0f / p->idepth_hessian) << std::endl;
+					}
+				
+					depthLogFile.flush();
+					depthLogFile.close();
+				}
+				else
+					std::cout << "Error opening " << fileName << std::endl;
+			}
+		}
+	}
+
 	void FullSystem::setOriginalCalib(const VecXf &originalCalib, int originalW, int originalH)
 	{
 
@@ -252,7 +320,6 @@
 		myfile.open (file.c_str());
 		myfile << std::setprecision(15);
 
-		std::cout << "Checkin history: ";
 		for(FrameShell* s : allFrameHistory)
 		{
 			if(!s->poseValid) continue;
@@ -267,10 +334,7 @@
 				" " << s->camToWorld.so3().unit_quaternion().w() <<
 			       	" scale: " << s->realScale << 
 				" " << (s->camToWorld.translation().transpose() / s->realScale) << std::endl;
-			
-			std::cout << s->realScale << "; ";
 		}
-		std::cout << std::endl;
 		myfile.close();
 	}
 
@@ -319,7 +383,7 @@
 			// just try a TON of different initializations (all rotations). In the end,
 			// if they don't work they will only be tried on the coarsest level, which is super fast anyway.
 			// also, if tracking rails here we loose, so we really, really want to avoid that.
-			for(float rotDelta=0; rotDelta < 0.6; rotDelta+= 0.01)
+			for(float rotDelta=0; rotDelta < 0.5; rotDelta+= 0.02)
 			{
 				lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,rotDelta,0,0), Vec3(0,0,0)));			// assume constant motion.
 				lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,0,rotDelta,0), Vec3(0,0,0)));			// assume constant motion.
@@ -904,6 +968,15 @@
 
 		lock.unlock();
 		deliverTrackedFrame(fh, needToMakeKF);
+		
+		//std::cout << "Checkin history: ";
+		//int iFrame = 0;
+		//for(FrameShell* s : allFrameHistory)
+		//{
+		//	std::cout << s->realScale << "(" << iFrame << "; " << s << "); ";
+		//	iFrame++;
+		//}
+		//std::cout << std::endl;
 		return;
 	}
 }
@@ -1040,6 +1113,7 @@ void FullSystem::makeNonKeyFrame( FrameHessian* fh)
 		fh->setEvalPT_scaled(fh->shell->camToWorld.inverse(),fh->shell->aff_g2l);
 		
 		// Set the real scale equal to the one of the tracking reference (it is not exact and should be refined...)
+		std::cout << "scale for a nonkeyframe: " << fh->shell->trackingRef->realScale << std::endl;
 		fh->setRealScale(fh->shell->trackingRef->realScale);
 	}
 
