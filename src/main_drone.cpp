@@ -596,107 +596,107 @@ int main( int argc, char** argv )
         while((imgIdx < idsToPlayLength && !onlineCam) || onlineCam)
         {
 		loopBegin = clock();
-            if(!fullSystem->initialized)	// if not initialized: reset start time.
-            {
-                gettimeofday(&tv_start, NULL);
-                started = clock();
-		if(!onlineCam)
-                	sInitializerOffset = timesToPlayAt[imgIdx];
-		else
+		if(!fullSystem->initialized)	// if not initialized: reset start time.
+		{
+			gettimeofday(&tv_start, NULL);
+			started = clock();
+			if(!onlineCam)
+			sInitializerOffset = timesToPlayAt[imgIdx];
+			else
 			sInitializerOffset = 0;
-            }
+		}
 
-            int i;
-	    if(onlineCam)
+		int i;
+		if(onlineCam)
 		i = 0;
-	    else
+		else
 		i = idsToPlay[imgIdx];
 
 
-            ImageAndExposure* img;
-            if(preload)
-                img = preloadedImages[imgIdx];
-            else if(onlineCam)
-	    {
-		cam.grab();
-		cam.retrieve(onlineImg);
-		reader->setCurrentImg(&onlineImg);
-		img = reader->getImage(i); // The parameter won't be taken into account (because onlineCam = true)
-	    }	
-	    else
-                img = reader->getImage(i);
-
-	    // Load external depth file into wrapper 
-	    bool loadedDepthFile = false;
-	    if(extDepth)
-	    {
-		loadedDepthFile = inputDepthWrap.loadDepthFile(i);
-		if(!loadedDepthFile)
-			std::cout << "Error: inputDepth is empty." << std::endl;
-	    }
-
-            bool skipFrame=false;
-            if(playbackSpeed!=0 && !onlineCam)
-            {
-                struct timeval tv_now; gettimeofday(&tv_now, NULL);
-                double sSinceStart = sInitializerOffset + ((tv_now.tv_sec-tv_start.tv_sec) + (tv_now.tv_usec-tv_start.tv_usec)/(1000.0f*1000.0f));
-
-                if(sSinceStart < timesToPlayAt[imgIdx])
-                    usleep((int)((timesToPlayAt[imgIdx]-sSinceStart)*1000*1000));
-                else if(sSinceStart > timesToPlayAt[imgIdx]+0.5+0.1*(imgIdx%2))
-                {
-                    printf("SKIPFRAME %d (play at %f, now it is %f)!\n", imgIdx, timesToPlayAt[imgIdx], sSinceStart);
-                    skipFrame=true;
-                }
-            }
-
-	    // IMU measurement
-	    Eigen::Vector4f attitudeReadings(1.0, 0.0, 0.0, 0.0);
-	    
-	    // clock_t startFrame = clock();
-            if(!skipFrame)
-	    {
-		if(extDepth && loadedDepthFile)
-			fullSystem->addActiveFrame(img, inputDepthWrap.getDepths(), extDepthLimits, attitudeReadings, i);
-	    	else
+		ImageAndExposure* img;
+		if(preload)
+			img = preloadedImages[imgIdx];
+		else if(onlineCam)
 		{
-			std::vector<float> emptyVec;
-			fullSystem->addActiveFrame(img, emptyVec, extDepthLimits, attitudeReadings, i);
-	    	}
-	    }
+			cam.grab();
+			cam.retrieve(onlineImg);
+			reader->setCurrentImg(&onlineImg);
+			img = reader->getImage(i); // The parameter won't be taken into account (because onlineCam = true)
+		}	
+		else
+		img = reader->getImage(i);
 
-	    // clock_t endFrame = clock();
-	    // std::cout << "Time activating frame: " << (1000.0f * (endFrame - startFrame) / (float) (CLOCKS_PER_SEC)) << std::endl;
+		// Load external depth file into wrapper 
+		bool loadedDepthFile = false;
+		if(extDepth)
+		{
+			loadedDepthFile = inputDepthWrap.loadDepthFile(i);
+			if(!loadedDepthFile)
+				std::cout << "Error: inputDepth is empty." << std::endl;
+		}
 
-            delete img;
+		bool skipFrame=false;
+		if(playbackSpeed!=0 && !onlineCam)
+		{
+			struct timeval tv_now; gettimeofday(&tv_now, NULL);
+			double sSinceStart = sInitializerOffset + ((tv_now.tv_sec-tv_start.tv_sec) + (tv_now.tv_usec-tv_start.tv_usec)/(1000.0f*1000.0f));
 
-            if(fullSystem->initFailed || setting_fullResetRequested)
-            {
-                if(imgIdx < 250 || setting_fullResetRequested)
-                {
-                    printf("RESETTING!\n");
+			if(sSinceStart < timesToPlayAt[imgIdx])
+				usleep((int)((timesToPlayAt[imgIdx]-sSinceStart)*1000*1000));
+			else if(sSinceStart > timesToPlayAt[imgIdx]+0.5+0.1*(imgIdx%2))
+			{
+				printf("SKIPFRAME %d (play at %f, now it is %f)!\n", imgIdx, timesToPlayAt[imgIdx], sSinceStart);
+				skipFrame=true;
+			}
+		}
 
-                    std::vector<IOWrap::Output3DWrapper*> wraps = fullSystem->outputWrapper;
-                    delete fullSystem;
+		// IMU measurement
+		Eigen::Vector4f attitudeReadings(1.0, 0.0, 0.0, 0.0);
 
-                    for(IOWrap::Output3DWrapper* ow : wraps) ow->reset();
+		// clock_t startFrame = clock();
+		if(!skipFrame)
+		{
+			if(extDepth && loadedDepthFile)
+				fullSystem->addActiveFrame(img, inputDepthWrap.getDepths(), extDepthLimits, attitudeReadings, i);
+			else
+			{
+				std::vector<float> emptyVec;
+				fullSystem->addActiveFrame(img, emptyVec, extDepthLimits, attitudeReadings, i);
+			}
+		}
 
-                    fullSystem = new FullSystem();
-                    fullSystem->setGammaFunction(reader->getPhotometricGamma());
-                    fullSystem->linearizeOperation = (playbackSpeed==0);
+		// clock_t endFrame = clock();
+		// std::cout << "Time activating frame: " << (1000.0f * (endFrame - startFrame) / (float) (CLOCKS_PER_SEC)) << std::endl;
+
+		delete img;
+
+		if(fullSystem->initFailed || setting_fullResetRequested)
+		{
+			if(imgIdx < 250 || setting_fullResetRequested)
+			{
+				printf("RESETTING!\n");
+
+				std::vector<IOWrap::Output3DWrapper*> wraps = fullSystem->outputWrapper;
+				delete fullSystem;
+
+				for(IOWrap::Output3DWrapper* ow : wraps) ow->reset();
+
+				fullSystem = new FullSystem();
+				fullSystem->setGammaFunction(reader->getPhotometricGamma());
+				fullSystem->linearizeOperation = (playbackSpeed==0);
 
 
-                    fullSystem->outputWrapper = wraps;
+				fullSystem->outputWrapper = wraps;
 
-                    setting_fullResetRequested=false;
-                }
-            }
+				setting_fullResetRequested=false;
+			}
+		}
 
-            if(fullSystem->isLost)
-            {
-                    printf("LOST!!\n");
-                    break;
-            }
+		if(fullSystem->isLost)
+		{
+			printf("LOST!!\n");
+			break;
+		}
 	
 		// Output timings
 		loopEnd = clock();
