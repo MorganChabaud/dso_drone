@@ -405,6 +405,20 @@ void parseArgument(char* arg)
 		std::cout << "External depth max Y: " << extDepth_maxY << std::endl;
 		return;
 	}
+	
+	if(1==sscanf(arg, "scaleDepth=%d", &option))
+	{
+		scaleRecovFromDepth = option;
+		std::cout << "SCALE RECOVERY!" << std::endl;
+		return;
+	}
+	
+	if(1==sscanf(arg, "extDepthImmature=%d", &option))
+	{
+		extDepthImmature = option;
+		std::cout << "External depth used for immature points prior" << std::endl;
+		return;
+	}
 
 	if(1==sscanf(arg, "trajLog=%d", &option))
 	{
@@ -441,7 +455,6 @@ int main( int argc, char** argv )
 	ImageFolderReader* reader = new ImageFolderReader(source, calib, gammaCalib, vignette);
 	reader->setGlobalCalibration();
 
-	
 	// Init camera
 	printf("Initialisating camera... ");
 	raspicam::RaspiCam_Cv cam;
@@ -479,6 +492,21 @@ int main( int argc, char** argv )
 		exit(1);
 	}
 
+	// Check external depth parameters
+	if((scaleRecovFromDepth || extDepthImmature) && !extDepth)
+	{
+		std::cout << "WARNING: You either want scale recovery from depth or external depth use in immature points tracking but \"extDepth\" is not set. Setting these to false..." << std::endl;
+		scaleRecovFromDepth = extDepthImmature = false;
+	}
+	else if(extDepth && !(scaleRecovFromDepth || extDepthImmature))
+	{
+		std::cout << "WARNING: You set external depth but neither \"scaleDepth\" nor \"depthImmature\" are set. As extDepth won't be used, it is set to false." << std::endl;
+		extDepth = false;
+	}
+
+	// Check scale estimation (Check for IMU scale eventually (not yet))
+	if(scaleRecovFromDepth)
+		scaleEstimation = true;
 
 	int lstart=start;
 	int lend = end;
@@ -511,6 +539,9 @@ int main( int argc, char** argv )
 	if(useSampleOutput)
         	fullSystem->outputWrapper.push_back(new IOWrap::SampleOutputWrapper());
 
+	// Init log files if needed
+	if(trajLog)
+		fullSystem->initTrajLogs();
 
     // to make MacOS happy: run this in dedicated thread -- and use this one to run the GUI.
     std::thread runthread([&]() {
@@ -540,6 +571,7 @@ int main( int argc, char** argv )
 	extDepth_maxX = wG[0];
 	extDepth_maxY = hG[0];
 
+	
 	if(extDepth)
 		extDepthLimits = Eigen::Vector4f(extDepth_minX, extDepth_maxX,
 						extDepth_minY, extDepth_maxY);

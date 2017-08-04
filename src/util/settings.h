@@ -189,6 +189,11 @@ extern bool plotStereoImages;
 extern bool multiThreading;
 extern bool onlineCam; // Capture images with onboard camera
 extern bool extDepth; // External depth file is taken into account during processing
+extern bool scaleRecovFromDepth; // Check if scale computation and outputs should be done (needs extDepth)
+extern bool extDepthImmature; // Check if external depth should be integrated during immature points tracking (needs extDepth)
+extern bool extIMU; // Load external IMU file
+extern bool initFromIMU; // Set initial poses from IMU for tracking
+extern bool scaleEstimation; // Must be true if scale is recovered from depth or IMU
 extern bool trajLog; // Trajectory logging (depth images and camera pose at each new image are logged in a separate file)
 extern bool printTimings; // Display some function timings on the console
 

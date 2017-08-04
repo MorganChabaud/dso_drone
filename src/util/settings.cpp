@@ -193,8 +193,14 @@ bool setting_onlyLogKFPoses = true;
 bool setting_logStuff = true;
 bool onlineCam = false;
 bool extDepth = false;
+bool scaleRecovFromDepth = false;
+bool extDepthImmature = false;
+bool extIMU = false;
+bool initFromIMU = false;
+bool scaleEstimation = false;
 bool trajLog = false;
 bool printTimings = false;
+
 
 const bool goStepByStep = false;
 

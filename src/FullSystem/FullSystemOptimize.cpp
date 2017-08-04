@@ -478,8 +478,6 @@ float FullSystem::optimize(int mnumOptIts)
 		double incDirChange = (1e-20 + previousX.dot(ef->lastX)) / (1e-20 + previousX.norm() * ef->lastX.norm());
 		previousX = ef->lastX;
 
-		std::cout << "Optimization procedure: futureInc: " << previousX << std::endl;
-
 		if(std::isfinite(incDirChange) && (setting_solverMode & SOLVER_STEPMOMENTUM))
 		{
 			float newStepsize = exp(incDirChange*1.4);

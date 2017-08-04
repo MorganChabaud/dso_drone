@@ -215,7 +215,11 @@
 
 		if(poseLogFile.is_open())
 		{
-			poseLogFile << "image index;x;y;z;qw;qx;qy;qz;scale" << std::endl;
+			poseLogFile << "image index;x;y;z;qw;qx;qy;qz";
+			if(scaleEstimation)
+				poseLogFile << ";scale;sx;sy;sz";
+			poseLogFile << std::endl;
+			
 			poseLogFile.flush();
 			poseLogFile.close();
 		}
@@ -233,8 +237,16 @@
 
 			if(poseLogFile.is_open())
 			{
-				poseLogFile << fileIndex << ";" << frame->camToWorld.translation()[0] << ";" << frame->camToWorld.translation()[1] << ";" << frame->camToWorld.translation()[2] << ";" << frame->camToWorld.so3().unit_quaternion().w() << ";" << frame->camToWorld.so3().unit_quaternion().x() << ";" << frame->camToWorld.so3().unit_quaternion().y() << ";" << frame->camToWorld.so3().unit_quaternion().z() << ";" <<frame->realScale << std::endl;
+				const Sophus::Vector3f t = frame->camToWorld.translation().cast<float>();
+				const Sophus::Quaternion<double> q = frame->camToWorld.so3().unit_quaternion();
+				const double s = frame->realScale;
+				// poseLogFile << fileIndex << ";" << frame->camToWorld.translation()[0] << ";" << frame->camToWorld.translation()[1] << ";" << frame->camToWorld.translation()[2] << ";" << frame->camToWorld.so3().unit_quaternion().w() << ";" << frame->camToWorld.so3().unit_quaternion().x() << ";" << frame->camToWorld.so3().unit_quaternion().y() << ";" << frame->camToWorld.so3().unit_quaternion().z() << ";" <<frame->realScale << std::endl;
 
+				poseLogFile << fileIndex << ";" << t[0] << ";" << t[1] << ";" << t[2] << ";" << q.w() << ";" << q.x() << ";" << q.y() << ";" << q.z();
+				if(scaleEstimation)
+					poseLogFile << ";" << s << ";" << (t[0]/s) << ";" << (t[1]/s) << ";" << (t[2]/s);
+				poseLogFile << std::endl;
+				
 				poseLogFile.flush();
 				poseLogFile.close();
 			}
@@ -246,8 +258,8 @@
 		
 		if(frameHessians.size() > 2) // Want the second to last frame
 		{
-			// Return if it is not a keyframe as there is no depth for this frame
-			if(allFrameHistory.size() > 2 && allFrameHistory[allFrameHistory.size() - 2] == frameHessians[frameHessians.size() - 2]->shell)
+			// Don't write anything  if it is not a keyframe as there is no depth for this frame
+			if(allFrameHistory.size() > 2 && allFrameHistory[allFrameHistory.size() - 2]->marginalizedAt != allFrameHistory[allFrameHistory.size() - 2]->id)
 			{
 				std::cout << "Logggggggggggggggin" << std::endl;
 				Eigen::Matrix<double, 3, 4> const & camToWorld = frameHessians[frameHessians.size() - 2]->shell->camToWorld.matrix3x4();
@@ -1113,7 +1125,6 @@ void FullSystem::makeNonKeyFrame( FrameHessian* fh)
 		fh->setEvalPT_scaled(fh->shell->camToWorld.inverse(),fh->shell->aff_g2l);
 		
 		// Set the real scale equal to the one of the tracking reference (it is not exact and should be refined...)
-		std::cout << "scale for a nonkeyframe: " << fh->shell->trackingRef->realScale << std::endl;
 		fh->setRealScale(fh->shell->trackingRef->realScale);
 	}
 

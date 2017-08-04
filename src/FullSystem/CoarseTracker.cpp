@@ -144,7 +144,7 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 	{
 		double scaleMean = 0;
 		int scaleCount = 0;
-		bool useExtIDepth = (extDepth && (fh->getImgIDepthAltSize() > 0)) ? true : false;
+		const bool useExtIDepth = (extDepth && (fh->getImgIDepthAltSize() > 0)) ? true : false;
 		for(PointHessian* ph : fh->pointHessians)
 		{
 			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::IN)
@@ -153,20 +153,14 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				assert(r->efResidual->isActive() && r->target == lastRef);
 				int u = r->centerProjectedTo[0] + 0.5f;
 				int v = r->centerProjectedTo[1] + 0.5f;
-				float new_idepth;
-
-				//if(useExtIDepth)
-				//	new_idepth = (u > fh->getExtLim(0) && v > fh->getExtLim(2) && u < fh->getExtLim(1) && v < fh->getExtLim(3)) ? fh->getImgIDepthAlt((u-1), (v-1)) : r->centerProjectedTo[2];
-				//else
-				new_idepth = r->centerProjectedTo[2];
+				float new_idepth = r->centerProjectedTo[2];
+				
+				// Compute scale if external depth is provided
 				if(useExtIDepth && (u > fh->getExtLim(0) && v > fh->getExtLim(2) && u < fh->getExtLim(1) && v < fh->getExtLim(3)))
 				{
-					//std::cout << "idep: " << new_idepth << " and scale: " << (fh->getImgIDepthAlt(u, v) / new_idepth) << std::endl;
 					scaleMean += fh->getImgIDepthAlt(u, v) / new_idepth;
 					scaleCount++;
 				}
-				//std::cout << "idep: " << new_idepth << " and proj: " << r->centerProjectedTo[2] << std::endl;
-				//if(new_idepth == -1) std::cout << "Warning: idepth outside image set to -1" << std::endl;
 
 				float weight = sqrtf(1e-3 / (ph->efPoint->HdiF+1e-12));
 

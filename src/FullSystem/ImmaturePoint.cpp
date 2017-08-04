@@ -386,9 +386,8 @@ ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* host, FrameHessian* fra
 
 	// ============== set new interval ===================
 	// Setting idepth min and max with an external source
-	if(extDepth && (host->getImgIDepthAltSize() > 0))
-	{
-		//printf("+");
+	if(extDepthImmature && (host->getImgIDepthAltSize() > 0))
+	{	
 		// If coordinates are within desired ranged for external source
 		if(u > host->getExtLim(0) && v > host->getExtLim(2) && u < host->getExtLim(1) && v < host->getExtLim(3))
 		{
@@ -397,15 +396,10 @@ ImmaturePointStatus ImmaturePoint::traceOn(FrameHessian* host, FrameHessian* fra
 				std::cout << "u: " << u << " v: " << v << "idep: " << extIDepth << std::endl;
 			idepth_min = (extIDepth + 0.1 * extIDepth) / host->getRealScale();
 			idepth_max = (extIDepth - 0.1 * extIDepth) / host->getRealScale();
-			//std::cout << "scale: " << host->getRealScale() << "min: " << idepth_min << " max: " << idepth_max << std::endl;
 		}
 	}
 	else
 	{
-		//printf("-");
-		
-		//std::cout << "pr: " << pr[0] << ";" << pr[1] << ";" << pr[2] << "; bU: " << bestU << "; bV: " << bestV << "; err: " << errorInPixel << "; dx: " << dx << "; hostTOFrame_Kt: " << hostToFrame_Kt[0] << ";" << hostToFrame_Kt[1] << ";" << hostToFrame_Kt[2] << std::endl;
-
 		if(dx*dx>dy*dy)
 		{
 			idepth_min = (pr[2]*(bestU-errorInPixel*dx) - pr[0]) / (hostToFrame_Kt[0] - hostToFrame_Kt[2]*(bestU-errorInPixel*dx));
