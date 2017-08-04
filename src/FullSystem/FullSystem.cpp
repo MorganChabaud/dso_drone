@@ -240,7 +240,6 @@
 				const Sophus::Vector3f t = frame->camToWorld.translation().cast<float>();
 				const Sophus::Quaternion<double> q = frame->camToWorld.so3().unit_quaternion();
 				const double s = frame->realScale;
-				// poseLogFile << fileIndex << ";" << frame->camToWorld.translation()[0] << ";" << frame->camToWorld.translation()[1] << ";" << frame->camToWorld.translation()[2] << ";" << frame->camToWorld.so3().unit_quaternion().w() << ";" << frame->camToWorld.so3().unit_quaternion().x() << ";" << frame->camToWorld.so3().unit_quaternion().y() << ";" << frame->camToWorld.so3().unit_quaternion().z() << ";" <<frame->realScale << std::endl;
 
 				poseLogFile << fileIndex << ";" << t[0] << ";" << t[1] << ";" << t[2] << ";" << q.w() << ";" << q.x() << ";" << q.y() << ";" << q.z();
 				if(scaleEstimation)
@@ -981,14 +980,6 @@
 		lock.unlock();
 		deliverTrackedFrame(fh, needToMakeKF);
 		
-		//std::cout << "Checkin history: ";
-		//int iFrame = 0;
-		//for(FrameShell* s : allFrameHistory)
-		//{
-		//	std::cout << s->realScale << "(" << iFrame << "; " << s << "); ";
-		//	iFrame++;
-		//}
-		//std::cout << std::endl;
 		return;
 	}
 }
