@@ -48,6 +48,7 @@ public:
 	AffLight aff_g2l;
 	bool poseValid;
 	double realScale;
+	int scalePointsCount; // scale points count
 
 	// statisitcs
 	int statistics_outlierResOnThis;
@@ -62,6 +63,7 @@ public:
 		poseValid=true;
 		camToWorld = SE3();
 		realScale = 1;
+		scalePointsCount = 0;
 		timestamp=0;
 		marginalizedAt=-1;
 		movedByOpt=0;

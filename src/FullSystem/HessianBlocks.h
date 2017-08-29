@@ -182,6 +182,7 @@ struct FrameHessian
 	inline void setImgIDepthsAlt(const std::vector<float> & imgIDepths){ imgIDepthsAlt = imgIDepths; }
 	inline void setInputDepthLimits(const Eigen::Vector4f & inputDepthLimits){ this->inputDepthLimits = inputDepthLimits; }
 	inline void setRealScale(double scale){ shell->realScale = scale; }	
+	inline void setScalePointsCount(int count){ shell->scalePointsCount = count; }
 
 	void setStateZero(const Vec10 &state_zero);
 	inline void setState(const Vec10 &state)

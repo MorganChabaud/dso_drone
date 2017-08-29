@@ -217,7 +217,7 @@
 		{
 			poseLogFile << "image index;x;y;z;qw;qx;qy;qz";
 			if(scaleEstimation)
-				poseLogFile << ";scale;sx;sy;sz";
+				poseLogFile << ";scale;pointsCount;sx;sy;sz";
 			poseLogFile << std::endl;
 			
 			poseLogFile.flush();
@@ -242,8 +242,9 @@
 				const double s = frame->realScale;
 
 				poseLogFile << fileIndex << ";" << t[0] << ";" << t[1] << ";" << t[2] << ";" << q.w() << ";" << q.x() << ";" << q.y() << ";" << q.z();
+				std::cout << "Checking out: " << frame->scalePointsCount << std::endl;
 				if(scaleEstimation)
-					poseLogFile << ";" << s << ";" << (t[0]/s) << ";" << (t[1]/s) << ";" << (t[2]/s);
+					poseLogFile << ";" << s << ";" << frame->scalePointsCount << ";" << (t[0]/s) << ";" << (t[1]/s) << ";" << (t[2]/s);
 				poseLogFile << std::endl;
 				
 				poseLogFile.flush();
@@ -260,7 +261,6 @@
 			// Don't write anything  if it is not a keyframe as there is no depth for this frame
 			if(allFrameHistory.size() > 2 && allFrameHistory[allFrameHistory.size() - 2]->marginalizedAt != allFrameHistory[allFrameHistory.size() - 2]->id)
 			{
-				std::cout << "Logggggggggggggggin" << std::endl;
 				Eigen::Matrix<double, 3, 4> const & camToWorld = frameHessians[frameHessians.size() - 2]->shell->camToWorld.matrix3x4();
 			
 				std::string fileName(depthLogFileBaseName + std::to_string(fileIndex) + ".csv");
@@ -1117,6 +1117,7 @@ void FullSystem::makeNonKeyFrame( FrameHessian* fh)
 		
 		// Set the real scale equal to the one of the tracking reference (it is not exact and should be refined...)
 		fh->setRealScale(fh->shell->trackingRef->realScale);
+		fh->setScalePointsCount(fh->shell->trackingRef->scalePointsCount);
 	}
 
 	traceNewCoarse(fh);

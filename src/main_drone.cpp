@@ -566,15 +566,20 @@ int main( int argc, char** argv )
         	}
 	}
 
-	Eigen::Vector4f extDepthLimits(-1, -1, -1, -1);
-	extDepth_minX = extDepth_minY = 1;
-	extDepth_maxX = wG[0];
-	extDepth_maxY = hG[0];
+	// Checking extDepth limit values
+	if(extDepth_minX == -1) extDepth_minX = 1;
+	if(extDepth_minY == -1) extDepth_minY = 1;
+	if(extDepth_maxX == -1) extDepth_maxX = wG[0];
+	if(extDepth_maxY == -1) extDepth_maxY = hG[0];
 
+	Eigen::Vector4f extDepthLimits(-1, -1, -1, -1);
 	
 	if(extDepth)
 		extDepthLimits = Eigen::Vector4f(extDepth_minX, extDepth_maxX,
 						extDepth_minY, extDepth_maxY);
+
+	std::cout << "External depth limits: minX: " << extDepthLimits(0) << " maxX: " << extDepthLimits(1) << " minY: " << extDepthLimits(2) << " maxY: " << extDepthLimits(3) << std::endl;
+
 
         std::vector<ImageAndExposure*> preloadedImages;
         if(preload && !onlineCam)

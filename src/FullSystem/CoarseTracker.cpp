@@ -138,13 +138,12 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 	// make coarse tracking templates for latstRef.
 	memset(idepth[0], 0, sizeof(float)*w[0]*h[0]);
 	memset(weightSums[0], 0, sizeof(float)*w[0]*h[0]);
-	double previousScaleMean = 1; // Newest frameHessian don't have any points so scale cannot be estimated with these
-	
+		
+	const bool useExtIDepth = (extDepth && (lastRef->getImgIDepthAltSize() > 0)) ? true : false;
+	double refScaleMean = 0;
+	int refScaleCount = 0;
 	for(FrameHessian* fh : frameHessians)
 	{
-		double scaleMean = 0;
-		int scaleCount = 0;
-		const bool useExtIDepth = (extDepth && (fh->getImgIDepthAltSize() > 0)) ? true : false;
 		for(PointHessian* ph : fh->pointHessians)
 		{
 			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::IN)
@@ -156,10 +155,10 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				float new_idepth = r->centerProjectedTo[2];
 				
 				// Compute scale if external depth is provided
-				if(useExtIDepth && (u > fh->getExtLim(0) && v > fh->getExtLim(2) && u < fh->getExtLim(1) && v < fh->getExtLim(3)))
+				if(useExtIDepth && (u > lastRef->getExtLim(0) && v > lastRef->getExtLim(2) && u < lastRef->getExtLim(1) && v < lastRef->getExtLim(3)))
 				{
-					scaleMean += fh->getImgIDepthAlt(u, v) / new_idepth;
-					scaleCount++;
+					refScaleMean += lastRef->getImgIDepthAlt(u, v) / new_idepth;
+					refScaleCount++;
 				}
 
 				float weight = sqrtf(1e-3 / (ph->efPoint->HdiF+1e-12));
@@ -169,8 +168,10 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 			}
 		}
 
-		if(useExtIDepth)
+	/*	if(useExtIDepth)
 		{
+			masterScale += scaleMean;
+			masterCount += scaleCount;
 			// Check if there were points on this frameHessian
 			if(scaleCount == 0)
 				scaleMean = previousScaleMean;
@@ -178,12 +179,26 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				scaleMean /= scaleCount;
 			
 			std::cout << "fh: " << fh->frameID << "Scale: " << scaleMean << "(" << fh->shell << ") and count: " << scaleCount << std::endl;
-			fh->setRealScale(scaleMean);
+			lastRef->setRealScale(scaleMean);
+			lastRef->setScalePointsCount(scaleCount);
 
 			// Store current scale mean for the next frameHessian
 			previousScaleMean = scaleMean;
-		}
+		}*/
 	}
+	
+	// Update scale and scaleCount in the reference frame
+	if(useExtIDepth)
+	{
+		if(refScaleCount == 0)
+			refScaleMean = 1;
+		else
+			refScaleMean /= refScaleCount;
+
+		lastRef->setRealScale(refScaleMean);
+		lastRef->setScalePointsCount(refScaleCount);
+	}
+	std::cout << "Ending scale: " << refScaleMean << " and count: " << refScaleCount <<std::endl;
 
 	
 
