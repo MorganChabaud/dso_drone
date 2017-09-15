@@ -242,7 +242,7 @@
 				const double s = frame->realScale;
 
 				poseLogFile << fileIndex << ";" << t[0] << ";" << t[1] << ";" << t[2] << ";" << q.w() << ";" << q.x() << ";" << q.y() << ";" << q.z();
-				std::cout << "Checking out: " << frame->scalePointsCount << std::endl;
+				
 				if(scaleEstimation)
 					poseLogFile << ";" << s << ";" << frame->scalePointsCount << ";" << (t[0]/s) << ";" << (t[1]/s) << ";" << (t[2]/s);
 				poseLogFile << std::endl;
@@ -383,6 +383,10 @@
 			SE3 fh_2_slast = slast_2_sprelast;// assumed to be the same as fh_2_slast.
 
 
+			// If attitude is measured (ex: IMU), it provides a good init
+			lastF_2_fh_tries.push_back(
+			// TO BE CONTINUED
+
 			// get last delta-movement.
 			lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast);	// assume constant motion.
 			lastF_2_fh_tries.push_back(fh_2_slast.inverse() * fh_2_slast.inverse() * lastF_2_slast);	// assume double motion (frame skipped)
@@ -394,7 +398,7 @@
 			// just try a TON of different initializations (all rotations). In the end,
 			// if they don't work they will only be tried on the coarsest level, which is super fast anyway.
 			// also, if tracking rails here we loose, so we really, really want to avoid that.
-			for(float rotDelta=0; rotDelta < 0.5; rotDelta+= 0.02)
+			for(float rotDelta=0; rotDelta < 0.5; rotDelta+= 0.1)
 			{
 				lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,rotDelta,0,0), Vec3(0,0,0)));			// assume constant motion.
 				lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,0,rotDelta,0), Vec3(0,0,0)));			// assume constant motion.
@@ -910,6 +914,11 @@
 		fh->setImgIDepthsAlt(inputDepths);
 		fh->setInputDepthLimits(inputDepthLimits);
 	}
+
+
+	// ========================== Set known idepth (external source) ====================
+	if(extAttitude)
+		fh->setInputAttitude(attitudeQuat);
 
 
 	if(!initialized)

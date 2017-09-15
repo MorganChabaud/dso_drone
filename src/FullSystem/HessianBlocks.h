@@ -115,6 +115,7 @@ struct FrameHessian
 	// constant info & pre-calculated values
 	//DepthImageWrap* frame;
 	FrameShell* shell;
+	
 
 	Eigen::Vector3f* dI;				 // trace, fine tracking. Used for direction select (not for gradient histograms etc.)
 	Eigen::Vector3f* dIp[PYR_LEVELS];	 // coarse tracking / coarse initializer. NAN in [0] only.
@@ -143,6 +144,7 @@ struct FrameHessian
 	std::vector<float> imgIDepthsAlt; // External from original DSO, used to specify some pixels true inverse depths
 
 	Eigen::Vector4f inputDepthLimits; // In order: 0: minX | 1: maxX | 2: minY | 3: maxY
+	Eigen::Vector4f inputAttitude; // qw, qx, qy, qz
 
 	Mat66 nullspaces_pose;
 	Mat42 nullspaces_affine;
@@ -165,6 +167,7 @@ struct FrameHessian
 
 	EIGEN_STRONG_INLINE float getImgIDepthAlt(int x, int y){ return imgIDepthsAlt[y * wG[0] + x]; }
 	EIGEN_STRONG_INLINE float getExtLim(int i){ return inputDepthLimits[i]; }	// i values: 0: minX | 1: maxX | 2: minY | 3: maxY
+	EIGEN_STRONG_INLINE Eigen::Vector4f getExtAttitude(){ return inputAttitude; } 
 	EIGEN_STRONG_INLINE std::vector<float>::size_type getImgIDepthAltSize(){ return imgIDepthsAlt.size(); }
 	EIGEN_STRONG_INLINE double getRealScale(){ return shell->realScale; }
 	
@@ -181,6 +184,7 @@ struct FrameHessian
 
 	inline void setImgIDepthsAlt(const std::vector<float> & imgIDepths){ imgIDepthsAlt = imgIDepths; }
 	inline void setInputDepthLimits(const Eigen::Vector4f & inputDepthLimits){ this->inputDepthLimits = inputDepthLimits; }
+	inline void setInputAttitude(const Eigen::Vector4f & inputAttitude){ this->inputAttitude = inputAttitude; }
 	inline void setRealScale(double scale){ shell->realScale = scale; }	
 	inline void setScalePointsCount(int count){ shell->scalePointsCount = count; }
 

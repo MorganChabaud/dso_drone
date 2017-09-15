@@ -52,11 +52,12 @@
 #include "IOWrapper/Pangolin/PangolinDSOViewer.h"
 #include "IOWrapper/OutputWrapper/SampleOutputWrapper.h"
 #include "IOWrapper/InputDepthWrapper.h"
+#include "IOWrapper/InputAttitudeWrapper.h"
 
 #include <raspicam/raspicam_cv.h>
 
 
-std::string vignette, gammaCalib, source, calib, extDepthFolder;
+std::string vignette, gammaCalib, source, calib, extDepthFolder, extAttitudeFolder;
 double rescale = 1;
 bool reverse = false;
 bool disableROS = false;
@@ -382,6 +383,15 @@ void parseArgument(char* arg)
 		return;
 	}
 
+	// External attitude options
+	if(1==sscanf(arg, "extAtt=%s", buf))
+	{
+		extAttitudeFolder = std::string(buf);
+		extAttitude = true;
+		std::cout << "Using external attitude from: " << extAttitudeFolder << std::endl;
+		return;
+	}
+
 	if(1==sscanf(arg, "minXDepth=%d", &extDepth_minX))
 	{
 		std::cout << "External depth min X: " << extDepth_minX << std::endl;
@@ -528,7 +538,8 @@ int main( int argc, char** argv )
 
 
 	IOWrap::InputDepthWrapper inputDepthWrap(wG[0], hG[0], extDepthFolder);
-	
+	IOWrap::InputAttitudeWrapper inputAttitudeWrap(extAttitudeFolder);
+
     	IOWrap::PangolinDSOViewer* viewer = 0;
 	if(!disableAllDisplay)
     	{
@@ -606,16 +617,16 @@ int main( int argc, char** argv )
 			gettimeofday(&tv_start, NULL);
 			started = clock();
 			if(!onlineCam)
-			sInitializerOffset = timesToPlayAt[imgIdx];
+				sInitializerOffset = timesToPlayAt[imgIdx];
 			else
-			sInitializerOffset = 0;
+				sInitializerOffset = 0;
 		}
 
 		int i;
 		if(onlineCam)
-		i = 0;
+			i = 0;
 		else
-		i = idsToPlay[imgIdx];
+			i = idsToPlay[imgIdx];
 
 
 		ImageAndExposure* img;
@@ -629,7 +640,7 @@ int main( int argc, char** argv )
 			img = reader->getImage(i); // The parameter won't be taken into account (because onlineCam = true)
 		}	
 		else
-		img = reader->getImage(i);
+			img = reader->getImage(i);
 
 		// Load external depth file into wrapper 
 		bool loadedDepthFile = false;
@@ -639,6 +650,17 @@ int main( int argc, char** argv )
 			if(!loadedDepthFile)
 				std::cout << "Error: inputDepth is empty." << std::endl;
 		}
+
+		// Load external attitude file into wrapper
+		bool loadedAttitudeFile = false;
+		if(extAttitude)
+		{
+			loadedAttitudeFile = inputAttitudeWrap.loadAttitudeFile(i);
+			if(!loadedAttitudeFile)
+				std::cout << "Error: inputAttitude is empty." << std::endl;
+		}
+
+		
 
 		bool skipFrame=false;
 		if(playbackSpeed!=0 && !onlineCam)
@@ -658,7 +680,13 @@ int main( int argc, char** argv )
 		// IMU measurement
 		Eigen::Vector4f attitudeReadings(1.0, 0.0, 0.0, 0.0);
 
-		// clock_t startFrame = clock();
+		if(extAttitude)
+		{
+			attitudeReadings = inputAttitudeWrap.getAttitude(i);
+			std::cout << "Loaded attitude: " << attitudeReadings << std::endl;
+		}
+
+		clock_t startFrameProcess = clock();
 		if(!skipFrame)
 		{
 			if(extDepth && loadedDepthFile)
@@ -670,8 +698,9 @@ int main( int argc, char** argv )
 			}
 		}
 
-		// clock_t endFrame = clock();
-		// std::cout << "Time activating frame: " << (1000.0f * (endFrame - startFrame) / (float) (CLOCKS_PER_SEC)) << std::endl;
+		clock_t endFrameProcess = clock();
+		double timeFrameProcess = (1000.0f * (endFrameProcess - startFrameProcess) / (float) (CLOCKS_PER_SEC));
+		// std::cout << "Time activating frame: " << (1000.0f * (endFrameProcess - startFrameProcess) / (float) (CLOCKS_PER_SEC)) << std::endl;
 
 		delete img;
 
@@ -707,7 +736,7 @@ int main( int argc, char** argv )
 		loopEnd = clock();
 		timeElapsedLoopMs = 1000.0 * (loopEnd - loopBegin) / ((float) CLOCKS_PER_SEC);
 		
-		std::cout << "It. time: " << timeElapsedLoopMs << "ms." << std::endl;
+		std::cout << "It. time: " << timeElapsedLoopMs << "ms. Frame process time: " << timeFrameProcess << "ms." << std::endl;
 
 		// Output states
 		//std::cout << "+";

@@ -193,6 +193,7 @@ bool setting_onlyLogKFPoses = true;
 bool setting_logStuff = true;
 bool onlineCam = false;
 bool extDepth = false;
+bool extAttitude = false;
 bool scaleRecovFromDepth = false;
 bool extDepthImmature = false;
 bool extIMU = false;
