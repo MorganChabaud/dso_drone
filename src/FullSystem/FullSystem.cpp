@@ -242,7 +242,7 @@
 				const double s = frame->realScale;
 
 				poseLogFile << fileIndex << ";" << t[0] << ";" << t[1] << ";" << t[2] << ";" << q.w() << ";" << q.x() << ";" << q.y() << ";" << q.z();
-				std::cout << "Checking out: " << frame->scalePointsCount << std::endl;
+
 				if(scaleEstimation)
 					poseLogFile << ";" << s << ";" << frame->scalePointsCount << ";" << (t[0]/s) << ";" << (t[1]/s) << ";" << (t[2]/s);
 				poseLogFile << std::endl;
